@@ -1,0 +1,115 @@
+@model List<Core.Models.Reservation>
+@{
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+    int selected = ViewBag.SelectedStatus ?? -1;
+    Func<int, string> active = s => selected == s ? "active" : "";
+    string BtnClass(int s) => s switch
+    {
+        1 => "btn btn-outline-success " + active(s),
+        4 => "btn btn-outline-dark " + active(s),
+        5 => "btn btn-outline-primary " + active(s),
+        _ => "btn btn-outline-secondary " + active(s)
+    };
+    Func<int, string> StatusText = s => s switch
+    {
+        1 => "Đã xác nhận",
+        4 => "Không có mặt",
+        5 => "Hoàn thành",
+        _ => "Không xác định"
+    };
+    Func<int, string> BadgeClass = s => s switch
+    {
+        1 => "bg-success",
+        4 => "bg-dark",
+        5 => "bg-primary",
+        _ => "bg-secondary"
+    };
+
+    var sortedReservations = Model?.OrderByDescending(r => r.reser_create_at).ToList();
+}
+
+<div class="profile-container_form">
+    <h3 class="text-center mb-4">Lịch sử đặt bàn</h3>
+
+    <!-- Thanh lọc trạng thái ngang (server-side, không JS) -->
+    <div class="mb-3 text-center">
+        <div class="btn-group" role="group" aria-label="Filter">
+            <a class="@BtnClass(-1)" href="@Url.Action("ReservationHistory", "Table", new { status = -1 })">Tất cả</a>
+            <a class="@BtnClass(1)" href="@Url.Action("ReservationHistory", "Table", new { status = 1 })">Đã xác
+                nhận</a>
+            <a class="@BtnClass(4)" href="@Url.Action("ReservationHistory", "Table", new { status = 4 })">Không có
+                mặt</a>
+            <a class="@BtnClass(5)" href="@Url.Action("ReservationHistory", "Table", new { status = 5 })">Hoàn thành</a>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center">Không có đơn nào.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered text-center">
+                <thead class="table-danger">
+                    <tr>
+                        <th>Khách hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Ngày đặt</th>
+                        <th>Giờ đặt</th>
+                        <th>Tên bàn</th>
+                        <th>Số lượng</th>
+                        <th>Ghi chú</th>
+                        <th>Trạng thái</th>
+                        <th>Tạo lúc</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in sortedReservations)
+                    {
+                        <tr>
+                            <td>@(r.customer?.cus_name ?? "Không xác định")</td>
+                            <td>@(r.customer?.cus_phone ?? "Không xác định")</td>
+                            <td>@r.reser_date.ToString("dd/MM/yyyy")</td>
+                            <td>@r.reser_date.ToString("HH:mm")</td>
+                            <td>@(r.table?.table_name ?? "Không xác định")</td>
+                            <td>@(r.table?.table_seat) người</td>
+                            <td>@r.reser_note</td>
+                            <td>
+                                @if (r.reser_status != 3 && r.reser_status != 2)
+                                {
+                                    <form asp-action="EditReservationStatus" asp-controller="Table" method="post"
+                                        style="display:inline;">
+                                        <input type="hidden" name="reserId" value="@r.reser_id" />
+                                        <select name="newStatus" class="form-select form-select-sm d-inline w-auto">
+                                            @{
+                                                var allowedStatuses = new[] { 1, 4, 5 };
+                                                foreach (var s in allowedStatuses)
+                                                {
+                                                    var text = StatusText(s);
+                                                    if (r.reser_status == s)
+                                                    {
+                                                        <option value="@s" selected>@text</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@s">@text</option>
+                                                    }
+                                                }
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary ms-1">Cập nhật</button>
+                                    </form>
+                                }
+                                <span class="badge @BadgeClass(r.reser_status)">
+                                    @StatusText(r.reser_status)
+                                </span>
+                            </td>
+                            <td>@(r.reser_create_at.ToString("dd/MM/yyyy HH:mm"))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

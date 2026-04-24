@@ -1,0 +1,115 @@
+@model IEnumerable<Core.Models.Verification>
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Danh sách xác thực";
+    var restaurants = ViewBag.Restaurants as IEnumerable<Core.Models.Restaurant>;
+}
+<style>
+    .verification-table-scroll {
+        overflow-x: auto;
+        width: 100%;
+    }
+    .verification-table-scroll table {
+        min-width: 900px;
+    }
+    @@media (max-width: 768px) {
+        .verification-table-scroll table {
+            font-size: 13px;
+        }
+        .verification-table-scroll th, .verification-table-scroll td {
+            padding: 6px !important;
+        }
+    }
+</style>
+<h2 class="mb-4">Danh sách xác thực</h2>
+<a class="btn btn-success mb-3" href="@Url.Action("RegisterVerification", "RestaurantOwner")">+ Đăng ký giấy phép mới</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning mt-4">
+        Không có giấy phép kinh doanh nào.
+    </div>
+}
+else
+{
+    <div class="verification-table-scroll">
+        <table class="table table-bordered table-hover align-middle">
+            <thead>
+                <tr style="border: 1px solid #dc3545 !important;">
+                    <th>ID</th>
+                    <th>Nhà hàng</th>
+                    <th>Mã số thuế</th>
+                    <th>Giấy phép KD</th>
+                    <th>Tài liệu</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày gửi</th>
+                    <th>Ngày xác thực</th>
+                    <th>File đính kèm</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model)
+                {
+                    <tr>
+                        <td>@v.ver_id</td>
+                        <td>@v.restaurant?.res_name</td>
+                        <td>@v.ver_tax_code</td>
+                        <td>@v.ver_license</td>
+                        <td>@v.ver_document</td>
+                        <td>
+                            @{
+                                string status = v.ver_status == 1 ? "Đã duyệt" : v.ver_status == 2 ? "Từ chối" : "Chờ duyệt";
+                                string statusClass = v.ver_status == 1 ? "text-success" : v.ver_status == 2 ? "text-danger" : "text-warning";
+                            }
+                            <span class="@statusClass">@status</span>
+                        </td>
+                        <td>@v.ver_date_submitted.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (v.ver_status == 1 && v.ver_date_verified.HasValue)
+                            {
+                                <span class="text-success">Ngày duyệt: @v.ver_date_verified.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                            }
+                            else if (v.ver_status == 2)
+                            {
+                                <span class="text-danger">
+                                    Ngày bác bỏ: @(v.ver_date_verified.HasValue ? v.ver_date_verified.Value.ToString("dd/MM/yyyy HH:mm") : "")
+                                    <br />
+                                    Lý do: @v.ver_content_responded
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa xác thực</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(v.ver_file_attachment))
+                            {
+                                <a href="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/verifications/@v.ver_file_attachment" target="_blank" class="text-primary">Xem file</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Không có</span>
+                            }
+                        </td>
+                        <td>
+                            @if (v.ver_status == 1)
+                            {
+                                <span class="text-success">Đã duyệt</span>
+                            }
+                            else if (v.ver_status == 2)
+                            {
+                                <span class="text-danger">Từ chối</span>
+                            }
+                            else
+                            {
+                                <span class="text-warning">Chờ duyệt</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

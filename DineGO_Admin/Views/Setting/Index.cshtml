@@ -1,0 +1,184 @@
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Cài đặt hệ thống";
+}
+
+<h2 class="text-3xl text-center font-extrabold mb-2 text-indigo-700 dark:text-indigo-300">Cài đặt hệ thống</h2>
+
+<div class="flex justify-center">
+    <form asp-action="Update" asp-controller="Setting" method="post" class="w-full max-w-xl bg-white dark:bg-gray-900 p-10 rounded-2xl shadow-2xl space-y-7 border border-indigo-100 dark:border-gray-700">
+        <div class="w-full max-w-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border border-indigo-200 dark:border-indigo-700 rounded-2xl shadow-2xl p-2 sm:p-6">
+            <form asp-action="Update" asp-controller="Setting" method="post" class="w-full bg-transparent p-0 space-y-7">
+            <div class="space-y-1 pb-4">
+                <label class="block font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                    <i class="fas fa-palette mr-2 text-indigo-500"></i>Chọn giao diện (Theme)
+                </label>
+                <div class="flex gap-4" id="themeOptions">
+                    <label>
+                        <input type="radio" name="Theme" value="default" class="hidden" checked />
+                        <span class="theme-box inline-block w-10 h-10 rounded-lg border-4 border-transparent cursor-pointer bg-gradient-to-br from-gray-200 to-gray-400 dark:from-gray-700 dark:to-gray-900"
+                            data-value="default" title="Mặc định"></span>
+                    </label>
+                    <label>
+                        <input type="radio" name="Theme" value="blue" class="hidden" />
+                        <span class="theme-box inline-block w-10 h-10 rounded-lg border-4 border-transparent cursor-pointer bg-gradient-to-br from-blue-400 to-blue-700"
+                            data-value="blue" title="Xanh dương"></span>
+                    </label>
+                    <label>
+                        <input type="radio" name="Theme" value="green" class="hidden" />
+                        <span class="theme-box inline-block w-10 h-10 rounded-lg border-4 border-transparent cursor-pointer bg-gradient-to-br from-green-400 to-green-700"
+                            data-value="green" title="Xanh lá"></span>
+                    </label>
+                    <label>
+                        <input type="radio" name="Theme" value="red" class="hidden" />
+                        <span class="theme-box inline-block w-10 h-10 rounded-lg border-4 border-transparent cursor-pointer bg-gradient-to-br from-red-400 to-red-700"
+                            data-value="red" title="Đỏ"></span>
+                    </label>
+                    <label>
+                        <input type="radio" name="Theme" value="purple" class="hidden" />
+                        <span class="theme-box inline-block w-10 h-10 rounded-lg border-4 border-transparent cursor-pointer bg-gradient-to-br from-purple-400 to-purple-700"
+                            data-value="purple" title="Tím"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="space-y-1 pb-4">
+                <label class="block font-semibold text-gray-700 dark:text-gray-200" for="Language">
+                    <i class="fas fa-language mr-2 text-indigo-500"></i>Ngôn ngữ hiển thị
+                </label>
+                <select asp-for="Language" class="w-full px-4 py-2 border border-indigo-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                </select>
+            </div>
+            <div class="space-y-1 pb-4">
+                <label class="block font-semibold text-gray-700 dark:text-gray-200" for="DarkMode">
+                    <i class="fas fa-adjust mr-2 text-indigo-500"></i>Chế độ hiển thị
+                </label>
+                <select asp-for="DarkMode" class="w-full px-4 py-2 border border-indigo-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
+                    <option value="false">Sáng (Light)</option>
+                    <option value="true">Tối (Dark)</option>
+                    <option value="auto">Tự động theo hệ điều hành</option>
+                </select>
+            </div>
+            <div class="space-y-1 pb-4">
+                <label class="block font-semibold text-gray-700 dark:text-gray-200" for="NotificationEmail">
+                    <i class="fas fa-envelope mr-2 text-indigo-500"></i>Email nhận thông báo
+                </label>
+                <input asp-for="NotificationEmail" class="w-full px-4 py-2 border border-indigo-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100" />
+            </div>
+            <div class="space-y-1 pb-4">
+                <label class="block font-semibold text-gray-700 dark:text-gray-200" for="ItemsPerPage">
+                    <i class="fas fa-list-ol mr-2 text-indigo-500"></i>Số dòng trên mỗi trang
+                </label>
+                <input asp-for="ItemsPerPage" type="number" min="5" max="100" class="w-full px-4 py-2 border border-indigo-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100" />
+            </div>
+            <div class="flex items-center space-x-2 pb-4">
+                <input asp-for="Enable2FA" type="checkbox" class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                <label class="font-semibold text-gray-700 dark:text-gray-200" for="Enable2FA">
+                    <i class="fas fa-shield-alt mr-2 text-indigo-500"></i>Bật xác thực 2 lớp (2FA)
+                </label>
+            </div>
+            <div class="space-y-1 pb-4">
+                <label class="block font-semibold text-gray-700 dark:text-gray-200" for="FooterText">
+                    <i class="fas fa-pen-nib mr-2 text-indigo-500"></i>Nội dung chân trang
+                </label>
+                <textarea asp-for="FooterText" rows="3" class="w-full px-4 py-2 border border-indigo-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="px-8 py-2 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-800 font-bold shadow-lg transition">
+                    <i class="fas fa-save mr-2"></i>Lưu thay đổi
+                </button>
+            </div>
+        </div>
+        <div class="flex justify-center mt-8">
+            <div class="w-full max-w-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-green-300 dark:border-green-700 rounded-2xl shadow-lg p-6">
+                <div class="flex items-center mb-2">
+                    <span class="inline-flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900 mr-3" style="width: 48px; height: 48px;">
+                        <i class="fas fa-robot text-green-500 text-3xl"></i>
+                    </span>
+                    <span class="text-xl font-bold text-green-700 dark:text-green-300">Cập nhật tag AI</span>
+                </div>
+                <div class="text-sm text-gray-700 dark:text-gray-300 mb-5 ml-1">
+                    Tự động đồng bộ và cập nhật các tag phục vụ cho AI phân loại món ăn.<br>Nhấn nút bên dưới để thực hiện.
+                </div>
+                <div class="flex justify-center">
+                    <button type="button" id="btnUpdateTags" class="px-8 py-2 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg hover:from-green-600 hover:to-green-800 font-bold shadow-lg transition flex items-center text-base">
+                        <i class="fas fa-sync-alt mr-2"></i>Cập nhật tag AI
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="updateTagsResult" class="mt-4"></div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    // Hiệu ứng chọn theme bằng JS
+    document.querySelectorAll('.theme-box').forEach(function(box) {
+        box.addEventListener('click', function () {
+            document.querySelectorAll('.theme-box').forEach(b => b.classList.remove('ring-4', 'ring-indigo-500', 'border-indigo-500'));
+            this.classList.add('ring-4', 'ring-indigo-500', 'border-indigo-500');
+            // Chọn radio tương ứng
+            this.previousElementSibling.checked = true;
+        });
+    });
+    document.getElementById('btnUpdateTags').addEventListener('click', function () {
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang cập nhật...';
+        fetch('/Setting/UpdateTagsAI', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showNotification(data.message || 'Đã cập nhật xong.', 'success');
+            document.getElementById('updateTagsResult').innerHTML = '';
+        })
+        .catch(err => {
+            showNotification('Có lỗi xảy ra khi cập nhật tag AI.', 'error');
+            document.getElementById('updateTagsResult').innerHTML = '';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Cập nhật tag AI';
+        });
+    });
+    function showNotification(message, type) {
+        const box = document.createElement('div');
+        box.className = `notification-box fixed top-6 right-6 z-50 flex flex-col gap-2 px-6 py-4 rounded-lg shadow-lg min-w-[250px] ${type === 'success' ? 'bg-green-100 border-green-400 text-green-800' : 'bg-red-100 border-red-400 text-red-800'}`;
+        box.innerHTML = `
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="font-semibold">${message}</span>
+                
+            </div>
+            <div class="progress-bar h-1 bg-green-400 rounded transition-all duration-200" style="width:0%"></div>
+            `;
+        document.body.appendChild(box);
+
+        const progress = box.querySelector('.progress-bar');
+        setTimeout(() => {
+            progress.style.width = '100%';
+            progress.style.transition = 'width 2.5s linear';
+        }, 10);
+
+        // Tự động ẩn sau 2.7s
+        setTimeout(() => {
+            box.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => box.remove(), 300);
+        }, 2700);
+
+        // Click để đóng ngay
+        box.addEventListener('click', () => {
+            box.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => box.remove(), 300);
+        });
+    }
+</script>
+}

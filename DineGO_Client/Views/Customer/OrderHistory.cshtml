@@ -1,0 +1,188 @@
+@model Core.Models.Client.Custom.CustomProfileViewModel
+@{
+    Layout = "../../Views/Shared/_Profile.cshtml";
+    ViewData["Title"] = "OrderHistory";
+}
+
+<div class="col-md-9 d-flex justify-content-center">
+    <div class="profile-container_form w-100">
+        <h3 class="text-center mb-4">Lịch sử đặt bàn</h3>
+
+        @if (Model.Data.ContainsKey("Reservation"))
+        {
+            var reservations = (Model.Data["Reservation"] as List<Core.Models.Reservation>)
+            ?.OrderByDescending(r => r.reser_create_at)
+            .ToList();
+
+            if (reservations == null || !reservations.Any())
+            {
+                <div class="alert alert-info text-center">Bạn chưa có đơn đặt bàn nào.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center align-middle">
+                        <thead class="table-danger">
+                            <tr>
+                                <th>Nhà hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Giờ đặt</th>
+                                <th>Tên bàn</th>
+                                <th>Số lượng</th>
+                                <th>Ghi chú</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var reservation in reservations)
+                            {
+                                <tr class="d-block d-md-table-row mb-3 mb-md-0 border-md-0">
+                                    <td data-label="Nhà hàng">
+                                        <a href="@Url.Action("Details", "Restaurant", new { id = reservation.restaurant.res_id })"
+                                            class="text-decoration-none text-danger fw-bold">
+                                            @reservation.restaurant.res_name
+                                        </a>
+                                    </td>
+                                    <td data-label="Ngày đặt">@reservation.reser_date.ToString("dd/MM/yyyy")</td>
+                                    <td data-label="Giờ đặt">@reservation.reser_date.ToString("HH:mm")</td>
+                                    <td data-label="Tên bàn">@((reservation.table?.table_name) ?? "Không xác định")</td>
+                                    <td data-label="Số lượng">@reservation.table?.table_seat người</td>
+                                    <td data-label="Ghi chú">@reservation.reser_note</td>
+                                    <td data-label="Trạng thái">
+                                        @{
+                                            string statusText = reservation.reser_status switch
+                                            {
+                                                0 => "Đang chờ xác nhận",
+                                                1 => "Đã xác nhận",
+                                                2 => "Thanh toán thất bại",
+                                                3 => "Đang dùng bữa",
+                                                4 => "Không có mặt",
+                                                5 => "Kết thúc",
+                                                _ => "Không xác định"
+                                            };
+                                            string badgeClass = reservation.reser_status switch
+                                            {
+                                                0 => "bg-warning text-dark",
+                                                1 => "bg-success",
+                                                2 => "bg-danger",
+                                                3 => "bg-primary",
+                                                4 => "bg-dark",
+                                                5 => "bg-success",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-2">
+                                            <span class="badge @badgeClass">
+                                                @statusText
+                                            </span>
+
+                                            @if (reservation.reser_status == 0)
+                                            {
+                                                <a class="btn btn-sm btn-danger"
+                                                    href="@Url.Action("Payment", "Reservation", new { reser_id = reservation.reser_id })">
+                                                    Thanh toán
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info text-center">Bạn chưa có đơn đặt bàn nào.</div>
+        }
+    </div>
+</div>
+
+<style>
+/* Desktop: hiển thị dạng bảng chuẩn */
+@@media (min-width: 768px) {
+    table.table thead {
+        display: table-header-group !important;
+    }
+
+    table.table tbody tr {
+        display: table-row !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    table.table tbody td {
+        display: table-cell !important;
+        text-align: center;
+        border: 1px solid #dee2e6 !important;
+        padding: 0.5rem !important;
+    }
+
+    table.table tbody td::before {
+        content: none !important; /* bỏ label ở desktop */
+    }
+}
+
+/* Mobile: hiển thị dạng thẻ (card) */
+@@media (max-width: 767.98px) {
+    table.table thead {
+        display: none !important;
+    }
+
+    table.table tbody tr {
+        display: block;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    table.table tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0.6rem;
+        border: none !important;
+    }
+
+    table.table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #495057;
+    }
+
+    table.table {
+        border: none !important;
+    }
+}
+
+
+/* Áp dụng chung cho cả desktop và mobile */
+table.table {
+    border-collapse: collapse;
+    width: 100%;
+    background-color: #fff;
+}
+
+/* Header */
+table.table thead th {
+    background-color: #f8d7da; /* đỏ nhạt */
+    color: #a71d2a;           /* chữ đỏ đậm */
+    border: 1px solid #dee2e6 !important; /* ép về viền xám */
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.6rem;
+}
+
+/* Body */
+table.table tbody td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.6rem;
+}
+
+/* Hàng so le */
+table.table tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+</style>

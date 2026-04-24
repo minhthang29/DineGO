@@ -1,0 +1,139 @@
+@model Core.Models.Client.Custom.CustomTableViewModel
+
+@{
+  Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+  ViewData["Title"] = "Danh sách đặt bàn";
+}
+
+<div class="sidebar">
+  <div class="flex-grow-1 p-4 bg-white">
+    <div class="mb-3">
+      <div class="mt-3 d-flex align-items-center gap-3 flex-wrap">
+        <h2 class="fw-bold text-danger m-0">Đơn đặt bàn hôm nay</h2>
+
+        <!-- Legend cho slot -->
+        <div class="d-flex gap-3 flex-wrap">
+          <div class="d-flex align-items-center gap-1">
+            <span class="d-inline-block rounded"
+              style="width:16px; height:16px; background-color: var(--bs-success);"></span>
+            <span class="text-success">Đang trống</span>
+          </div>
+
+          <div class="d-flex align-items-center gap-1">
+            <span class="d-inline-block rounded"
+              style="width:16px; height:16px; background-color: var(--bs-warning);"></span>
+            <span class="text-warning">Chờ thanh toán</span>
+          </div>
+
+          <div class="d-flex align-items-center gap-1">
+            <span class="d-inline-block rounded"
+              style="width:16px; height:16px; background-color: var(--bs-danger);"></span>
+            <span class="text-danger">Đã đặt</span>
+          </div>
+
+          <div class="d-flex align-items-center gap-1">
+            <span class="d-inline-block rounded"
+              style="width:16px; height:16px; background-color: var(--bs-primary);"></span>
+            <span class="text-primary">Đang dùng bữa</span>
+          </div>
+
+          <div class="d-flex align-items-center gap-1">
+            <span class="d-inline-block rounded"
+              style="width:16px; height:16px; background-color: var(--bs-dark);"></span>
+            <span class="text-dark">Không có mặt</span>
+          </div>
+
+          <div class="d-flex align-items-center gap-1">
+            <span class="d-inline-block rounded"
+              style="width:16px; height:16px; background-color: var(--bs-info);"></span>
+            <span class="text-info">Hoàn thành</span>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <div id="todayReservationList" class="p-2"></div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+      <h2 class="fw-bold text-danger m-0">Tùy chỉnh đặt bàn</h2>
+    </div>
+    <hr>
+    <div class="d-flex align-items-center mb-4 flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <label class="fw-semibold m-0">Khu vực:</label>
+        <select id="areaSelector">
+          @foreach (var area in Model.Areas)
+          {
+            <option value="@area.area_id">@area.area_name</option>
+          }
+        </select>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label class="fw-semibold m-0">Ngày:</label>
+        <input type="date" id="dateSelector" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")"
+          max="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+      </div>
+      <div class="d-flex align-items-center gap-2 d-none">
+        <label class="fw-semibold m-0">Trạng thái:</label>
+        <select id="statusFilter">
+          <option value="-1">Tất cả</option>
+          <option value="0">Đang trống</option>
+          <option value="1">Đang chờ thanh toán</option>
+          <option value="2">Đã đặt</option>
+          <option value="3">Tạm đóng</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="noTableMessage" class="alert alert-info text-center d-none" style="max-width: 400px;">
+      Khu vực này hiện tại chưa có bàn.
+    </div>
+
+    <div id="table-layout" class="p-2 d-grid grid-layout"></div>
+
+    <h3 class="fw-bold text-danger m-0">Khung giờ:</h3>
+    <!-- Container hiển thị slot -->
+    <div id="ownerSlotContainer" class="mt-3"></div>
+  </div>
+</div>
+
+<!-- Modal chi tiết đặt bàn -->
+<div class="modal fade" id="reservationDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title fw-bold" id="tableName">Chi tiết đặt bàn - </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body px-4">
+        <p><strong>Tên khách hàng:</strong> <span id="customerName">-</span></p>
+        <p><strong>Số điện thoại:</strong> <span id="customerPhone">-</span></p>
+        <p><strong>Giờ đặt:</strong> <span id="reservationDate">-</span></p>
+        <p><strong>Ghi chú:</strong> <span id="reservationNote">-</span></p>
+        <p><strong>Trạng thái:</strong> <span id="reservationStatus">-</span></p>
+      </div>
+
+      <div class="modal-footer" id="reservationModalFooter">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+@section Scripts {
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      setupReservationPage();
+    });
+    document.addEventListener("DOMContentLoaded", () => {
+      loadReservedTimesToday();
+    });
+  </script>
+  <script src="~/client/js/table-status-signalr.js"></script>
+  <script>
+    startTableSignalR(updateTableStatusUIById);
+  </script>
+}

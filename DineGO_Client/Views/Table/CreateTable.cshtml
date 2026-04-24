@@ -1,0 +1,47 @@
+<!-- Modal Thêm Bàn -->
+<div class="modal fade" id="addTableModal" tabindex="-1" aria-labelledby="addTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTableModalLabel">Thêm bàn mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-bold">Tên bàn</label>
+                        <input type="text" class="form-control" id="modalTableLabel" placeholder="Nhập tên bàn">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Số chỗ</label>
+                        <input type="number" class="form-control" id="modalTableSeat" min="1" value="2">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ảnh bàn</label>
+                    <div class="common-image-upload-multiple">
+                        <input type="file" id="table_multi_input" accept="image/*" multiple style="display: none;">
+                        <div id="table_multi_previewBox" class="image-upload-wrapper">
+                            <div id="table_multi_addBtn" class="add-image-box">
+                                <i class="bi bi-file-image fs-2"></i>
+                                <span class="ms-2">Thêm ảnh</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-danger w-100" onclick="confirmAddTableFromModal()">Thêm bàn</button>
+            </div>
+
+        </div>
+    </div>
+</div>

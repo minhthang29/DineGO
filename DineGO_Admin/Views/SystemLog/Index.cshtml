@@ -1,0 +1,391 @@
+@model Core.Common.PaginatedList<Core.Models.SystemLog>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Nhật ký hệ thống";
+    ViewData["PaginationAction"] = "Index";
+    ViewData["PaginationController"] = "SystemLog";
+}
+
+<div class="mb-6">
+    <h2 class="text-2xl font-bold mb-4">Nhật ký hệ thống</h2>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="statsCards">
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-list text-blue-500 text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-500">Tổng nhật ký</div>
+                    <div class="text-2xl font-bold text-gray-900" id="totalLogs">@Model.TotalCount</div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-500">24 giờ qua</div>
+                    <div class="text-2xl font-bold text-yellow-600" id="last24Hours">-</div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-500">Tỷ lệ thành công</div>
+                    <div class="text-2xl font-bold text-green-600" id="successRate">-</div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-calendar text-indigo-500 text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-500">Tuần qua</div>
+                    <div class="text-2xl font-bold text-indigo-600" id="lastWeek">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow p-4 mb-6">
+    <h3 class="text-lg font-semibold mb-4 text-gray-700">Bộ lọc</h3>
+    <form method="get" action="@Url.Action("Index")" class="text-gray-700 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div>
+            <label class="block text-sm font-medium  mb-1">Từ ngày</label>
+            <input type="date" name="fromDate" value="@ViewBag.FromDate" 
+                   class="w-full border rounded px-3 py-2 text-sm">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Đến ngày</label>
+            <input type="date" name="toDate" value="@ViewBag.ToDate" 
+                   class="w-full border rounded px-3 py-2 text-sm">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Admin</label>
+            <select name="adminId" class="w-full border rounded px-3 py-2 text-sm">
+                <option value="">Tất cả</option>
+                @foreach (var admin in ViewBag.Admins as List<Core.Models.Admin>)
+                {
+                    <option value="@admin.ad_id" @(ViewBag.AdminId?.ToString() == admin.ad_id.ToString() ? "selected" : "")>
+                        @admin.ad_name
+                    </option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+            <select name="isSuccess" class="w-full border rounded px-3 py-2 text-sm">
+                <option value="">Tất cả</option>
+                <option value="true" @(ViewBag.IsSuccess?.ToString() == "True" ? "selected" : "")>Thành công</option>
+                <option value="false" @(ViewBag.IsSuccess?.ToString() == "False" ? "selected" : "")>Thất bại</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded text-sm hover:bg-blue-700">
+                <i class="fas fa-search mr-1"></i>Lọc
+            </button>
+        </div>
+    </form>
+</div>
+@if (!string.IsNullOrEmpty(ViewBag.Action) || ViewBag.AdminId != null || ViewBag.IsSuccess != null || !string.IsNullOrEmpty(ViewBag.FromDate) || !string.IsNullOrEmpty(ViewBag.ToDate))
+{
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h4 class="text-sm font-semibold text-blue-800 mb-2">Bộ lọc đang áp dụng:</h4>
+        <div class="flex flex-wrap gap-2">
+            @if (!string.IsNullOrEmpty(ViewBag.FromDate))
+            {
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Từ ngày: @ViewBag.FromDate</span>
+            }
+            @if (!string.IsNullOrEmpty(ViewBag.ToDate))
+            {
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Đến ngày: @ViewBag.ToDate</span>
+            }
+            @if (ViewBag.AdminId != null)
+            {
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Admin ID: @ViewBag.AdminId</span>
+            }
+            @if (!string.IsNullOrEmpty(ViewBag.Action))
+            {
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Action: @ViewBag.Action</span>
+            }
+            @if (ViewBag.IsSuccess != null)
+            {
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Trạng thái: @(ViewBag.IsSuccess.ToString() == "True" ? "Thành công" : "Thất bại")</span>
+            }
+            <a href="@Url.Action("Index")" class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs hover:bg-red-200">
+                <i class="fas fa-times mr-1"></i>Xóa bộ lọc
+            </a>
+        </div>
+        <div class="mt-2 text-sm text-blue-600">
+            Tìm thấy <strong>@Model.TotalCount</strong> kết quả
+        </div>
+    </div>
+}
+<!-- Export Buttons -->
+<div class="bg-white rounded-lg shadow p-4 mb-6">
+    <h3 class="text-lg font-semibold mb-4 text-gray-700">Xuất dữ liệu</h3>
+    <div class="flex flex-wrap gap-4">
+        <a href="@Url.Action("ExportCsv", new { 
+            fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, 
+            adminId = ViewBag.AdminId, action = ViewBag.Action, isSuccess = ViewBag.IsSuccess })" 
+           class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 inline-flex items-center">
+            <i class="fas fa-file-csv mr-2"></i>Xuất CSV
+        </a>
+        <a href="@Url.Action("ExportExcel", new { 
+            fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate, 
+            adminId = ViewBag.AdminId, action = ViewBag.Action, isSuccess = ViewBag.IsSuccess })" 
+           class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 inline-flex items-center">
+            <i class="fas fa-file-excel mr-2"></i>Xuất Excel
+        </a>
+        <form method="post" action="@Url.Action("CleanupOldLogs")" class="inline-block"
+              onsubmit="return confirm('Bạn có chắc muốn xóa các nhật ký cũ hơn 6 tháng?');">
+            <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded text-sm hover:bg-yellow-700 inline-flex items-center">
+                <i class="fas fa-broom mr-2"></i>Dọn dẹp nhật ký cũ
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Admin</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+                <th class="px-6 py-3 text-left">Mô tả</th>
+                <th class="px-6 py-3 text-left">Thời gian</th>
+                <th class="px-6 py-3 text-left">IP</th>
+                <th class="px-6 py-3 text-left">Thiết bị</th>
+                <th class="px-6 py-3 text-left">Status</th>
+                <th class="px-6 py-3 text-left">Kết quả</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                foreach (var log in Model.Items)
+                {
+                    string statusColor = "text-gray-700";
+                    if (log.status_code >= 200 && log.status_code < 300)
+                    {
+                        statusColor = "text-green-600 font-bold";
+                    }
+                    else if (log.status_code >= 400 && log.status_code < 500)
+                    {
+                        statusColor = "text-yellow-500 font-bold";
+                    }
+                    else if (log.status_code >= 500)
+                    {
+                        statusColor = "text-red-600 font-bold";
+                    }
+                    
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <td class="px-6 py-4 font-semibold">#@log.sys_log_id</td>
+                        <td class="px-6 py-4">
+                            @if (log.admin != null)
+                            {
+                                <div>
+                                    <span class="font-semibold">@log.admin.ad_name</span>
+                                    <span class="text-xs text-gray-500 block">ID: @log.admin.ad_id</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">Hệ thống</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4">
+                            @{
+                                string actionColor = "text-gray-800";
+                                if (log.action != null)
+                                {
+                                    if (log.action.Contains("POST", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        actionColor = "text-blue-600 font-bold";
+                                    }
+                                    else if (log.action.Contains("PUT", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        actionColor = "text-yellow-600 font-bold";
+                                    }
+                                    else if (log.action.Contains("DELETE", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        actionColor = "text-red-600 font-bold";
+                                    }
+                                }
+                            }
+                            <span class="@actionColor px-2 py-1 rounded-full text-xs">@log.action</span>
+                        </td>
+                        <td class="px-6 py-4 max-w-xs">
+                            <span title="@log.description" class="truncate block">@log.description</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm">
+                                <div class="font-medium">@log.log_time?.ToString("dd/MM/yyyy")</div>
+                                <div class="text-gray-500">@log.log_time?.ToString("HH:mm:ss")</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded">@log.ip_address</span>
+                        </td>
+                        <td class="px-6 py-4 max-w-xs">
+                            <span title="@log.device_info" class="truncate block text-sm">
+                                @(string.IsNullOrEmpty(log.device_info) ? "-" : 
+                                  (log.device_info.Length > 30 ? log.device_info.Substring(0, 30) + "..." : log.device_info))
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="@statusColor font-mono">@log.status_code</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            @if (log.is_success == true)
+                            {
+                                <span class="text-green-600 font-semibold text-lg">✔</span>
+                            }
+                            else if (log.is_success == false)
+                            {
+                                <span class="text-red-600 font-semibold text-lg">✘</span>
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">?</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="9" class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <div>Không có nhật ký nào phù hợp với bộ lọc.</div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@await Html.PartialAsync("_Pagination", Model)
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get current filter values
+    const currentFilters = {
+        fromDate: '@ViewBag.FromDate',
+        toDate: '@ViewBag.ToDate',
+        adminId: '@ViewBag.AdminId',
+        action: '@ViewBag.Action',
+        isSuccess: '@ViewBag.IsSuccess'
+    };
+    
+    // Update all pagination links
+    document.querySelectorAll('a[href*="pageIndex"]').forEach(link => {
+        const url = new URL(link.href);
+        
+        // Add current filters to pagination links
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key] && currentFilters[key] !== '') {
+                url.searchParams.set(key, currentFilters[key]);
+            }
+        });
+        
+        link.href = url.toString();
+    });
+    
+    loadStats();
+    addQuickFilterButtons();
+});
+// Load statistics
+async function loadStats() {
+    try {
+        const response = await fetch('@Url.Action("GetStats")');
+        const stats = await response.json();
+        
+        // Null safety check
+        if (stats && !stats.error) {
+            document.getElementById('totalLogs').textContent = stats.total || 0;
+            document.getElementById('last24Hours').textContent = stats.last24Hours || 0;
+            document.getElementById('lastWeek').textContent = stats.lastWeek || 0;
+            document.getElementById('successRate').textContent = (stats.successRate || 0).toFixed(1) + '%';
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+        // Set default values on error
+        document.getElementById('totalLogs').textContent = '@Model.TotalCount';
+        document.getElementById('last24Hours').textContent = '0';
+        document.getElementById('lastWeek').textContent = '0';
+        document.getElementById('successRate').textContent = '0%';
+    }
+}
+
+// Quick filter buttons
+function quickFilter(type, value) {
+    const form = document.querySelector('form[method="get"]');
+    const formData = new FormData(form);
+    
+    // Clear existing filters
+    formData.delete(type);
+    
+    // Add new filter
+    if (value) {
+        formData.set(type, value);
+    }
+    
+    // Build query string
+    const params = new URLSearchParams();
+    for (let [key, val] of formData.entries()) {
+        if (val) params.append(key, val);
+    }
+    
+    // Navigate
+    window.location.href = form.action + '?' + params.toString();
+}
+
+// Auto hide notifications
+setTimeout(() => {
+    const notifications = document.querySelectorAll('.fixed.top-4.right-4');
+    notifications.forEach(notification => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    });
+}, 5000);
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadStats();
+    
+    // Add quick filter buttons to table headers (optional)
+    addQuickFilterButtons();
+});
+
+function addQuickFilterButtons() {
+    // Add quick filter for actions in table
+    document.querySelectorAll('td .text-blue-600, td .text-yellow-600, td .text-red-600').forEach(el => {
+        if (el.textContent.trim()) {
+            el.style.cursor = 'pointer';
+            el.title = 'Click để lọc theo ' + el.textContent.trim();
+            el.addEventListener('click', () => {
+                quickFilter('action', el.textContent.trim());
+            });
+        }
+    });
+}
+</script>
+}

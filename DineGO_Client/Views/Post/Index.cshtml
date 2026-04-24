@@ -1,0 +1,264 @@
+@model Core.Models.Client.Custom.CustomPostViewModel;
+@using System.Text.Json
+@using Microsoft.AspNetCore.Http;
+@{
+  ViewData["Title"] = "Index";
+}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <!-- Cột trái: Thông tin người dùng và bộ lọc -->
+    <div class="col-12 col-md-3 mb-3">
+      <div class="card p-3 text-center shadow-sm">
+        <img
+          src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_{@Model.Customer.cus_image}")"
+          class="rounded-circle mx-auto d-block img-fluid"
+          style="max-width: 200px; height: auto; object-fit: cover;" alt="Avatar" />
+        <h4 class="mt-3 mb-4 text-truncate">@Model.Customer.cus_name</h4>
+
+        <div class="btn-group w-100" role="group">
+          <a href="@Url.Action("Index", "Post")"
+             class="btn @(Context.Request.Query["showMine"].ToString().ToLower() == "true" ? "btn-outline-danger" : "btn-danger")"
+             title="Mọi người">
+            <i class="bi bi-globe2"></i>
+          </a>
+          <a href="@Url.Action("Index", "Post", new { showMine = true })"
+             class="btn @(Context.Request.Query["showMine"].ToString().ToLower() == "true" ? "btn-danger" : "btn-outline-danger")"
+             title="Bài viết của tôi">
+            <i class="bi bi-person-circle"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải -->
+    <div class="col-12 col-md-6">
+      @Html.Partial("_PostCreate")
+      @Html.Partial("_PostEdit")
+      @await Html.PartialAsync("_Notification")
+
+      <!-- Khung tạo bài đăng -->
+      <div class="card mb-4 p-2 shadow-sm">
+        <div class="d-flex align-items-center">
+          <img
+            src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_{@Model.Customer.cus_image}")"
+            class="rounded-circle me-2" style="width: 45px; height: 45px; object-fit: cover;">
+          <input type="text" class="form-control trigger-create-post-popup"
+            style="border: none; box-shadow: none;"
+            placeholder="@($"{@Model.Customer.cus_name} ơi, bạn đang nghĩ gì thế?")"
+            data-title="Tạo bài viết"
+            data-fields="post_content,post_image"
+            data-action="Create"
+            data-controller="Post"
+            data-method="POST"
+            readonly>
+        </div>
+      </div>
+
+      @functions {
+        public string TimeAgo(DateTime dateTime)
+        {
+          var timeSpan = DateTime.Now - dateTime;
+
+          if (timeSpan.TotalMinutes < 1)
+            return "Vừa xong";
+          if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes} phút trước";
+          if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours} giờ trước";
+          if (timeSpan.TotalDays < 30)
+            return $"{(int)timeSpan.TotalDays} ngày trước";
+
+          return dateTime.ToString("dd/MM/yyyy");
+        }
+      }
+
+      <!-- Hiển thị nếu không có bài viết -->
+      @if (Model.Posts == null || !Model.Posts.Any())
+      {
+        <div class="alert alert-info text-center">Chưa có bài viết nào!</div>
+      }
+      else
+      {
+
+    var showMine = Context.Request.Query["showMine"].ToString().ToLower() == "true";
+@foreach (var post in Model.Posts.OrderByDescending(p => p.post_created_date))
+{
+    var userPost = Model.Customers.FirstOrDefault(u => u.cus_id == post.cus_id);
+    var isOwner = post.cus_id == Model.Customer.cus_id;
+
+    // ẩn bài chưa duyệt nếu không phải owner hoặc không bật showMine
+    if (!post.post_is_approve && !(isOwner && showMine))
+    {
+        continue;
+    }
+
+    var isPending = !post.post_is_approve;
+    
+    <div class="card post mb-4 shadow-sm @(post.post_is_approve ? "" : "unapproved")"
+         data-approved="@(post.post_is_approve)">
+        <div class="post-header d-flex justify-content-between align-items-start position-relative p-3">
+            <div class="d-flex align-items-center">
+                <img src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_{userPost.cus_image}")"
+                     style="width: 50px; height: 50px; object-fit: cover;" class="rounded-circle me-2">
+                <div>
+                    <div class="fw-semibold text-truncate">@userPost.cus_name</div>
+                    <div class="text-muted small">
+                        @{
+                            var created = post.post_created_date;
+                            var updated = post.post_updated_date;
+
+                            if (updated == null || updated <= created)
+                            {
+                                @TimeAgo(created)
+                            }
+                            else
+                            {
+                                @(TimeAgo(updated)) <span class="fst-italic">(Đã chỉnh sửa)</span>
+                            }
+                        }
+                    </div>
+                </div>
+                @if (isPending && isOwner)
+                {
+                    <div class="ms-2">
+                        <span class="badge bg-secondary">Chưa duyệt</span>
+                    </div>
+                }
+            </div>
+
+            @if (isOwner)
+            {
+                <div class="custom-dropdown-wrapper">
+                    <button class="btn btn-sm toggle-dropdown" type="button">⋯</button>
+                    <div class="custom-dropdown-menu d-none">
+                        <div class="menu-item trigger-edit-post-popup"
+                             data-post-id="@post.post_id"
+                             data-post-content="@post.post_content"
+                             data-post-image='@Html.Raw(JsonSerializer.Serialize(post.post_images_json))'
+                             data-post-video="@post.post_video">
+                            <i class="fas fa-edit text-primary"></i> Chỉnh sửa
+                        </div>
+                        <div class="menu-item open-dynamic-modal"
+                             data-title="Xác nhận xoá bài viết"
+                             data-action="Delete"
+                             data-controller="Post"
+                             data-method="POST"
+                             data-type="delete"
+                             data-id="@post.post_id"
+                             data-success-callback="reloadDetailPost">
+                            <i class="fas fa-trash text-danger"></i> Xoá
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="post-content px-3 pb-2" style="word-break: break-word;">
+            @post.post_content
+        </div>
+
+        @{
+            var images = post.post_images_json;
+            var imageCount = images.Count;
+            var gridClass = imageCount switch
+            {
+                1 => "one",
+                2 => "two",
+                3 => "three",
+                4 => "four",
+                _ => "more"
+            };
+        }
+        @if (imageCount > 0)
+        {
+            <div class="post-images-grid @gridClass">
+                @for (int i = 0; i < Math.Min(imageCount, 4); i++)
+                {
+                    <div class="grid-item @(isPending ? "" : "clickable")"
+     @(isPending ? "" : $"onclick=\"openDetailPostPopup('{post.post_id}')\"")>
+                        <img class="img-fluid rounded"
+                             src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/posts/thumb_{images[i]}")" />
+                        @if (i == 3 && imageCount > 4)
+                        {
+                            <div class="more-overlay">
+                                +@((imageCount - 4))
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(post.post_video))
+        {
+            <div class="post-video px-3 pb-2">
+                <video class="w-100 rounded" controls>
+                    <source src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/posts/videos/{post.post_video}")" type="video/mp4" />
+                    Trình duyệt của bạn không hỗ trợ video.
+                </video>
+            </div>
+        }
+
+        @if (!isPending)
+        {
+            <!-- Chỉ bài đã duyệt mới có like/comment/detail -->
+            <div class="actions px-3 py-2 text-muted small d-flex justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    @await Html.PartialAsync("_ReactionMenu", (post.post_id, Model.Likes?.FirstOrDefault(l => l.post_id == post.post_id && l.cus_id == Model.Customer.cus_id)?.like_emotion_type ?? 0))
+                    <span class="reaction-count fw-semibold text-primary"
+                          id="like-count-@post.post_id"
+                          style="cursor:pointer"
+                          onclick="showReactionsPopup(@post.post_id)">
+                      (@post.post_like_count)
+                    </span>
+                </div>
+                <div class="d-flex align-items-center gap-2 fw-bold"
+                     onclick="openDetailPostPopup('@post.post_id')">
+                    <i class="bi bi-chat-dots"></i> Bình luận
+                    <span class="reaction-count fw-semibold text-primary"
+                          id="comment-count-@post.post_id">
+                      (@post.post_comment_count)
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+}
+      }
+    </div>
+  </div>
+</div>
+
+
+    <!-- Modal hiển thị chi tiết bài viết -->
+    <div class="modal fade" id="detailPostModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content" style="height: 90vh;">
+          <div class="modal-body p-0" id="detailPostPopupBody">
+            <!-- Nội dung bài viết và comment sẽ được load vào đây -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+<form id="reactForm" method="post" action="/Post/ReactToPost">
+  <input type="hidden" name="post_id" id="reactPostId" />
+  <input type="hidden" name="like_emotion_type" id="reactEmotionType" />
+</form>
+
+<script src="/client/js/post.js" asp-append-version="true"></script>
+@section Scripts {
+      <script>
+          // Detect URL parameter và hash để auto-open modal
+          document.addEventListener("DOMContentLoaded", function () {
+              const urlParams = new URLSearchParams(window.location.search);
+              const postId = urlParams.get('postId');
+              const hash = window.location.hash;
+              if (postId && (hash === '#openModal' || urlParams.get('modal') === 'true')) {
+                  // Gọi function JS cũ để mở modal
+                  openDetailPostPopup(parseInt(postId));
+              }
+          });
+      </script>
+  }
+  

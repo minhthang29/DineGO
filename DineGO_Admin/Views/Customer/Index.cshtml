@@ -1,0 +1,374 @@
+@model Core.Common.PaginatedList<Core.Models.Customer>
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Customer";
+    ViewData["PaginationAction"] = "Index";
+    ViewData["PaginationController"] = "Customer";
+}
+<h2 class="text-2xl font-bold mb-4">Quản lý Khách Hàng</h2>
+<div class="mb-4">
+    <a href="@Url.Action("AddCustomer", "Customer")"
+        class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <i class="fas fa-plus"></i> Thêm Khách Hàng
+    </a>
+    <!-- *** SPAM FILTER BUTTON *** -->
+    <button onclick="toggleSpamFilter()" class="ml-2 inline-block px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
+        <i class="fas fa-filter"></i> Lọc Spam (<span id="spam-count">@Model.Items.Count(c => c.cus_status == 1)</span>)
+    </button>
+</div>
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table id="customer-table" class="bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left w-16 border-r border-indigo-200">ID</th>
+                <th class="px-6 py-3 text-left w-32 border-r border-indigo-200">Hình ảnh</th>
+                <th class="px-6 py-3 text-left resizable-col w-40 border-r border-indigo-200">Tên đăng nhập</th>
+                <th class="px-6 py-3 text-left resizable-col w-48 border-r border-indigo-200">Họ và tên</th>
+                <th class="px-6 py-3 text-left resizable-col w-32 border-r border-indigo-200">Ngày sinh</th>
+                <th class="px-6 py-3 text-left resizable-col w-24 border-r border-indigo-200">Giới tính</th>
+                <th class="px-6 py-3 text-left resizable-col w-40 border-r border-indigo-200">Số điện thoại</th>
+                <th class="px-6 py-3 text-left resizable-col w-56 border-r border-indigo-200">Email</th>
+                <th class="px-6 py-3 text-left resizable-col w-56 border-r border-indigo-200">Địa chỉ</th>
+                <th class="px-6 py-3 text-left w-24 border-r border-indigo-200">Trạng thái</th>
+                <th class="px-6 py-3 text-left w-32">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @foreach (var customer in Model.Items)
+            {
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition @(customer.cus_status == 1 ? "spam-row" : "")" data-customer-id="@customer.cus_id" data-is-spam="@(customer.cus_status == 1 ? "true" : "false")">
+                    <td class="px-6 py-4 truncate border-r border-gray-200">@customer.cus_id</td>
+                    <td class="px-6 py-4 border-r border-gray-200">
+                        <div class="relative">
+                            <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_@(string.IsNullOrEmpty(customer.cus_image) ? "default.jpeg" : customer.cus_image)"
+                                alt="@customer.cus_name" class="w-12 h-12 rounded-full object-cover border-2 @(customer.cus_status == 1 ? "border-orange-500" : "border-indigo-400")">
+                            
+                            @if (customer.cus_status == 1)
+                            {
+                                <div class="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-exclamation text-white text-xs"></i>
+                                </div>
+                            }
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 truncate border-r border-gray-200" title="@customer.cus_username">
+                        @if (customer.cus_is_use)
+                        {
+                            <div class="flex items-center gap-2">
+                                @customer.cus_username
+                                @if (customer.cus_status == 1)
+                                {
+                                    <span class="spam-badge" title="Tài khoản spam">🚨</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-gray-400 flex items-center gap-1" title="Tài khoản đã bị ngừng hoạt động">
+                                <i class="fas fa-exclamation-triangle text-red-500"></i>
+                                @customer.cus_username
+                                @if (customer.cus_status == 1)
+                                {
+                                    <span class="spam-badge ml-1" title="Tài khoản spam">🚨</span>
+                                }
+                            </span>
+                        }
+                    </td>
+                    <td class="px-6 py-4 truncate border-r border-gray-200" title="@customer.cus_name">
+                        <div class="flex items-center gap-2">
+                            @customer.cus_name
+                            @if (customer.cus_status == 1)
+                            {
+                                <span class="text-orange-600 text-sm font-bold" title="Tài khoản spam">SPAM</span>
+                            }
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 truncate border-r border-gray-200">@customer.cus_birthday?.ToString("yyyy-MM-dd")</td>
+                    <td class="px-6 py-4 truncate border-r border-gray-200">
+                        @(customer.cus_gender.HasValue
+                            ? (customer.cus_gender.Value ? "Nam" : "Nữ")
+                            : "Khác")
+                    </td>
+                    <td class="px-6 py-4 truncate border-r border-gray-200" title="@customer.cus_phone">@customer.cus_phone</td>
+                    <td class="px-6 py-4 truncate border-r border-gray-200" title="@customer.cus_email">@customer.cus_email</td>
+                    <td class="px-6 py-4 truncate border-r border-gray-200" title="@customer.cus_address">@customer.cus_address</td>
+                    
+                    <!-- *** NEW STATUS COLUMN *** -->
+                    <td class="px-6 py-4 truncate border-r border-gray-200">
+                        @if (customer.cus_status == 1)
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold border border-orange-300">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                SPAM
+                            </span>
+                        }
+                        else if (!customer.cus_is_use)
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold border border-red-300">
+                                <i class="fas fa-ban mr-1"></i>
+                                Blocked
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold border border-green-300">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Active
+                            </span>
+                        }
+                    </td>
+                    
+                    <td class="px-6 py-4 relative">
+                        <div class="flex justify-center">
+                            <button type="button"
+                                class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                                onclick="toggleActionMenu(this)">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="absolute right-0 z-20 bg-white dark:bg-gray-800 border border-gray-300 rounded shadow-lg min-w-[140px] hidden action-menu">
+                                <a href="@Url.Action("UpdateCustomer", "Customer", new { id = customer.cus_id })"
+                                    class="block px-4 py-2 text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-800">
+                                    <i class="fas fa-edit mr-2"></i> Sửa
+                                </a>
+                                
+                                <!-- *** SPAM RESET OPTION *** -->
+                                @if (customer.cus_status == 1)
+                                {
+                                    <button type="button"
+                                        class="w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-green-800"
+                                        onclick="resetSpamStatus(@customer.cus_id)">
+                                        <i class="fas fa-undo mr-2"></i> Reset Spam
+                                    </button>
+                                }
+                                
+                                @if(customer.cus_is_use)
+                                {
+                                    <button type="button"
+                                        class="w-full text-left px-4 py-2 text-yellow-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-yellow-800"
+                                        onclick="openBlockPopup(@customer.cus_id)">
+                                        <i class="fas fa-ban mr-2"></i> Chặn
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                        class="w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-800"
+                                        onclick="openActivatePopup(@customer.cus_id)">
+                                        <i class="fas fa-unlock-alt mr-2"></i> Kích hoạt
+                                    </button>
+                                }
+                                <a href="@Url.Action("DeleteCustomer", "Customer", new { id = customer.cus_id })"
+                                    class="block px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-800">
+                                    <i class="fas fa-trash-alt mr-2"></i> Xóa
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@await Html.PartialAsync("_Pagination", Model)
+
+<!-- *** SPAM WARNING STYLES *** -->
+<style>
+    .spam-row {
+        border-left: 4px solid #ffc107;
+    }
+    
+    .spam-badge {
+        animation: pulse 2s infinite;
+        font-size: 12px;
+    }
+    
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .filter-active {
+        background-color: #ea580c !important;
+    }
+</style>
+
+<!-- Activate Popup Modal -->
+<div id="activate-popup"
+     class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h3 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
+            <i class="fas fa-unlock-alt"></i> Kích Hoạt Tài Khoản
+        </h3>
+        <form id="activate-form" method="post" action="/Customer/ActivateCustomer">
+            <input type="hidden" name="id" id="activate-id" />
+            <div class="mb-4">
+                <label class="block font-semibold mb-1 text-black">Lý do kích hoạt</label>
+                <textarea name="activate_reason" rows="3" class="w-full border rounded px-3 py-2 text-black" placeholder="Nhập lý do kích hoạt..." required></textarea>
+            </div>
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="send-email" name="send_email" class="mr-2" value="true" />
+                <label for="send-email" class="text-black">Gửi email nhắc nhở cho khách hàng</label>
+            </div>
+            <div class="mb-4">
+                <label class="block font-semibold mb-1 text-black">Ngày kích hoạt</label>
+                <input type="date" name="activate_date" class="w-full border rounded px-3 py-2 text-black" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+            </div>
+            <div class="mb-4">
+                <label class="block font-semibold mb-1 text-black">Người thực hiện</label>
+                <input type="text" name="activated_by" class="w-full border rounded px-3 py-2 text-black" placeholder="Tên admin thực hiện" required />
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeActivatePopup()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-black">Hủy</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Kích hoạt</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Block Popup Modal -->
+<div id="block-popup"
+     class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h3 class="text-xl font-bold mb-4 text-yellow-700 flex items-center gap-2">
+            <i class="fas fa-ban"></i> Block Khách Hàng
+        </h3>
+        <form id="block-form" method="post" action="/Customer/BlockCustomer">
+            <input type="hidden" name="id" id="block-id" />
+            <div class="mb-4">
+                <label class="block font-semibold mb-1 text-black">Loại block</label>
+                <select name="block_type" class="w-full border rounded px-3 py-2 text-black" required>
+                    <option value="">Chọn loại block</option>
+                    <option value="tam_thoi">Tạm thời</option>
+                    <option value="vinh_vien">Vĩnh viễn</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block font-semibold mb-1 text-black">Loại vi phạm</label>
+                <select name="violation_type" class="w-full border rounded px-3 py-2 text-black" required>
+                    <option value="">Chọn loại vi phạm</option>
+                    <option value="vi_pham_chinh_sach">Vi phạm chính sách</option>
+                    <option value="noi_dung_spam">Nội dung spam</option>
+                    <option value="sai_quy_dinh">Sai quy định</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block font-semibold mb-1 text-black">Nội dung block</label>
+                <textarea name="block_reason" rows="3" class="w-full border rounded px-3 py-2 text-black" placeholder="Nhập lý do block..." required></textarea>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeBlockPopup()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-black">Hủy</button>
+                <button type="submit" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">Block</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Toggle action menu
+function toggleActionMenu(button) {
+    const menu = button.nextElementSibling;
+    const allMenus = document.querySelectorAll('.action-menu');
+    
+    // Close all other menus
+    allMenus.forEach(m => {
+        if (m !== menu) {
+            m.classList.add('hidden');
+        }
+    });
+    
+    // Toggle current menu
+    menu.classList.toggle('hidden');
+}
+
+// Block popup functions
+function openBlockPopup(id) {
+    document.getElementById('block-id').value = id;
+    document.getElementById('block-popup').classList.remove('hidden');
+}
+
+function closeBlockPopup() {
+    document.getElementById('block-popup').classList.add('hidden');
+}
+
+// Activate popup functions
+function openActivatePopup(id) {
+    document.getElementById('activate-id').value = id;
+    document.getElementById('activate-popup').classList.remove('hidden');
+}
+
+function closeActivatePopup() {
+    document.getElementById('activate-popup').classList.add('hidden');
+}
+
+// *** NEW SPAM FUNCTIONS ***
+function resetSpamStatus(customerId) {
+    if (confirm('Bạn có chắc chắn muốn reset trạng thái spam cho customer này?')) {
+        fetch(`/api/Customer/reset-spam-status/${customerId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify('Admin reset spam status')
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert('Đã reset trạng thái spam thành công!');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi reset spam status');
+        });
+    }
+}
+
+let spamFilterActive = false;
+function toggleSpamFilter() {
+    const button = event.target.closest('button');
+    const rows = document.querySelectorAll('tbody tr');
+    
+    spamFilterActive = !spamFilterActive;
+    
+    if (spamFilterActive) {
+        button.classList.add('filter-active');
+        button.innerHTML = '<i class="fas fa-filter"></i> Hiện Tất Cả';
+        
+        // Hide non-spam rows
+        rows.forEach(row => {
+            const isSpam = row.getAttribute('data-is-spam') === 'true';
+            if (!isSpam) {
+                row.style.display = 'none';
+            }
+        });
+    } else {
+        button.classList.remove('filter-active');
+        button.innerHTML = `<i class="fas fa-filter"></i> Lọc Spam (<span id="spam-count">${document.querySelectorAll('[data-is-spam="true"]').length}</span>)`;
+        
+        // Show all rows
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+    }
+}
+
+// Close menus when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.relative')) {
+        document.querySelectorAll('.action-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    }
+});
+
+// Close popups when pressing Escape
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeBlockPopup();
+        closeActivatePopup();
+    }
+});
+</script>

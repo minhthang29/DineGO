@@ -1,0 +1,86 @@
+<!-- Modal -->
+<div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered create-post">
+    <div class="modal-content d-flex flex-column" style="max-height: 90vh;"> <!-- giới hạn chiều cao để scroll -->
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="createPostModalLabel">Tạo bài viết</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+
+      <!-- Thông tin user -->
+      <div class="d-flex align-items-center p-3">
+        <img
+          src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_{@Model.Customer.cus_image}")"
+          style="width: 60px; height: 60px; object-fit: cover;" class="rounded-circle me-2">
+        <div>
+          <div class="fw-bold">@Model.Customer.cus_name</div>
+        </div>
+      </div>
+
+      <!-- Body có scroll -->
+      <div class="modal-body overflow-auto" style="flex: 1;">
+        <form id="createPostForm" method="post" action="/Post/Create" enctype="multipart/form-data"
+          class="d-flex flex-column gap-3 emoji-form-create">
+          <!-- Nội dung bài viết -->
+          <div class="post-input-container position-relative">
+            <!-- Chỉ chứa textarea -->
+            <div>
+              <textarea class="form-textarea" id="post_content" name="post_content" rows="6"
+                placeholder="@Model.Customer.cus_name ơi, bạn đang nghĩ gì thế?"></textarea>
+            </div>
+
+            <!-- Chỉ chứa emoji icon và picker -->
+            <div class="emoji-control mt-2 position-relative">
+              <button type="button" class="emoji-toggle-btn" aria-label="Chọn emoji">
+                <i class="fas fa-smile"></i>
+              </button>
+
+              <!-- Emoji picker -->
+              <div class="emoji-picker d-none"></div>
+            </div>
+          </div>
+
+          <!-- Upload ảnh + video trong cùng 1 hàng -->
+          <div class="d-flex gap-3">
+            <!-- Ảnh bài viết multiple -->
+            <div class="common-image-upload-multiple">
+              <input type="file" id="post_multi_input" name="post_images" accept="image/*" multiple
+                style="display: none;">
+              <div id="post_multi_previewBox" class="image-upload-wrapper">
+                <div id="post_multi_addBtn" class="add-image-box">
+                  <i class="bi bi-file-image fs-2"></i>
+                  <span class="ms-2">Thêm ảnh</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Video bài viết -->
+            <div class="common-video-upload">
+              <input type="file" id="post_video_input" name="post_video" accept="video/*" style="display: none;">
+              <div id="post_video_previewBox" class="image-upload-wrapper">
+                <div id="post_video_addBtn" class="add-image-box">
+                  <i class="bi bi-camera-video fs-2"></i>
+                  <span class="ms-2">Thêm video</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer cố định -->
+      <div class="modal-footer border-0">
+        <button type="submit" form="createPostForm" class="btn btn-danger w-100">Đăng bài</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    setupMultipleImagePreviewGrid("post_multi");
+    setupVideoPreview("post_video");
+  });
+</script>

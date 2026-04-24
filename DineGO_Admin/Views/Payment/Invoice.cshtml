@@ -1,0 +1,260 @@
+@model Core.Models.Payment
+
+@{
+    Layout = null; 
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hóa đơn thanh toán - @Model.pay_id</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .invoice-header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .invoice-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .invoice-header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .invoice-body {
+            padding: 40px;
+        }
+        
+        .invoice-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .info-section h3 {
+            color: #374151;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #111827;
+            font-size: 14px;
+        }
+        
+        .price-section {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            font-size: 18px;
+        }
+        
+        .price-label {
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .price-value {
+            font-weight: 700;
+            color: #059669;
+            font-size: 24px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-confirmed { background: #dbeafe; color: #1e40af; }
+        .status-delivering { background: #d1fae5; color: #065f46; }
+        .status-completed { background: #dcfce7; color: #166534; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-paid { background: #dbeafe; color: #1e40af; }
+        .status-unknown { background: #f3f4f6; color: #374151; }
+        
+        .invoice-footer {
+            background: #f9fafb;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .print-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        @@media print {
+            body { background: white; padding: 0; }
+            .invoice-container { box-shadow: none; border-radius: 0; }
+            .print-btn { display: none; }
+            .invoice-header { background: #2563eb !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <div class="logo-placeholder flex items-center justify-center overflow-hidden border-4 border-indigo-500 mx-auto mb-6" style="width: 80px; height: 80px; border-radius: 50%;">
+                <img src="/images/logo.jpg" alt="Logo" class="object-cover w-full h-full" />
+            </div>
+            <h1>HÓA ĐƠN THANH TOÁN</h1>
+            <div class="subtitle">DineGO Restaurant Management System</div>
+        </div>
+        
+        <div class="invoice-body">
+            <div class="invoice-info">
+                <div class="info-section">
+                    <h3>Thông tin hóa đơn</h3>
+                    <div class="info-item">
+                        <span class="info-label">Mã hóa đơn:</span>
+                        <span class="info-value">@Model.pay_id</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ngày tạo:</span>
+                        <span class="info-value">@Model.pay_created_date.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Trạng thái:</span>
+                        <span class="info-value">
+                            @{
+                                var (statusClass, statusText) = Model.pay_status switch
+                                {
+                                    0 => ("status-pending", "Chờ xác nhận"),
+                                    1 => ("status-confirmed", "Đã xác nhận"),
+                                    2 => ("status-delivering", "Đang giao"),
+                                    3 => ("status-completed", "Hoàn thành"),
+                                    4 => ("status-cancelled", "Đã hủy"),
+                                    5 => ("status-paid", "Đã thanh toán"),
+                                    _ => ("status-unknown", "Không xác định")
+                                };
+                            }
+                            <span class="status-badge @statusClass">@statusText</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3>Thông tin khách hàng</h3>
+                    <div class="info-item">
+                        <span class="info-label">Mã khách hàng:</span>
+                        <span class="info-value">@Model.cus_id</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ngày thanh toán:</span>
+                        <span class="info-value">@DateTime.Now.ToString("dd/MM/yyyy")</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="price-section">
+                <div class="price-item">
+                    <span class="price-label">Tổng tiền thanh toán:</span>
+                    <span class="price-value">@Model.pay_price.ToString("N0") VNĐ</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="invoice-footer">
+            <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">
+                Cảm ơn quý khách đã sử dụng dịch vụ của DineGO!
+            </p>
+            <button class="print-btn" onclick="window.print()">
+                🖨️ In hóa đơn
+            </button>
+        </div>
+    </div>
+</body>
+</html>

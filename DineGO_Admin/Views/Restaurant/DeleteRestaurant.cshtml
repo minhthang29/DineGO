@@ -1,0 +1,64 @@
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "DeleteRestaurant";
+}
+
+<form action="" method="POST">
+    <div class="mb-3">
+        <label for="restaurant-id" class="form-label">Restaurant ID</label>
+        <input type="text" class="form-control" id="restaurant-id" name="restaurant-id" value="R001" readonly>
+    </div>
+
+    <div class="mb-3">
+        <label for="information" class="form-label">Information</label>
+        <textarea class="form-control" id="information" name="information" rows="3"
+            readonly>A cozy place with a modern twist, serving delicious international cuisine.</textarea>
+    </div>
+
+ <div class="mb-3">
+        <label for="restaurant-image" class="form-label">Image</label>
+        <input type="file" class="form-control" id="restaurant-image" name="image">
+        <small class="form-text text-muted">Leave empty if you don't want to change the image.</small>
+    </div>
+
+    <div class="mb-3">
+        <label for="address" class="form-label">Address</label>
+        <input type="text" class="form-control" id="address" name="address" value="123 Main Street, City Center, XYZ"
+            readonly>
+    </div>
+
+    <div class="mb-3">
+        <label for="time" class="form-label">Time</label>
+        <input type="text" class="form-control" id="time" name="time" value="10:00 AM - 10:00 PM" readonly>
+    </div>
+
+    <div class="mb-3">
+        <label for="type" class="form-label">Type</label>
+        <input type="text" class="form-control" id="type" name="type" value="Italian" readonly>
+    </div>
+
+    <div class="mb-3">
+        <label for="price" class="form-label">Price</label>
+        <input type="text" class="form-control" id="price" name="price" value="$25" readonly>
+    </div>
+
+    <div class="mb-3">
+        <label for="discount" class="form-label">Discount</label>
+        <input type="text" class="form-control" id="discount" name="discount" value="10%" readonly>
+    </div>
+
+    <div class="mb-3">
+        <label for="phone" class="form-label">Phone</label>
+        <input type="text" class="form-control" id="phone" name="phone" value="(123) 456-7890" readonly>
+    </div>
+
+    <div class="mb-3">
+        <label for="rate" class="form-label">Rate</label>
+        <input type="text" class="form-control" id="rate" name="rate" value="4.5" readonly>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-danger">Delete Restaurant</button>
+        <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    </div>
+</form>

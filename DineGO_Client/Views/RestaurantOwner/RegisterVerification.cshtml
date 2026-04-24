@@ -1,0 +1,45 @@
+@model Core.Models.Verification
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Đăng ký giấy phép kinh doanh";
+    var restaurants = ViewBag.Restaurants as IEnumerable<Core.Models.Restaurant>;
+}
+
+<h2 class="mb-4">Đăng ký giấy phép kinh doanh</h2>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10 col-12">
+        <form asp-action="RegisterVerification" asp-controller="RestaurantOwner" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Nhà hàng</label>
+                <select name="res_id" class="form-control" required>
+                    <option value="">-- Chọn nhà hàng --</option>
+                    @if (restaurants != null)
+                    {
+                        foreach (var res in restaurants)
+                        {
+                            <option value="@res.res_id">@res.res_name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mã số giấy phép</label>
+                <input type="text" name="ver_license" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mã số thuế</label>
+                <input type="text" name="ver_tax_code" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Tài liệu liên quan</label>
+                <input type="text" name="ver_document" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">File giấy phép (PDF/JPG/PNG)</label>
+                <input type="file" name="file" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
+        </form>
+    </div>
+</div>

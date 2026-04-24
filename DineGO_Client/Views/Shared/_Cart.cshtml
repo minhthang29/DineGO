@@ -1,0 +1,22 @@
+@inject Core.Services.CartService CartService
+@using Core.Constant
+@using Microsoft.AspNetCore.Http
+
+@{
+    int? cusId = Context.Session.GetInt32(SessionConstants.CUSTOMER_ID);
+    int cartCount = 0;
+    if (cusId != null)
+    {
+        cartCount = await CartService.CountCartItemsAsync(cusId.Value);
+    }
+}
+
+<a asp-controller="Cart" asp-action="Index" class="nav-link position-relative" title="Xem giỏ hàng">
+    <i class="bi bi-cart-fill fs-5" style="padding: 5px;"></i>
+    @if (cartCount > 0)
+    {
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            @cartCount
+        </span>
+    }
+</a>

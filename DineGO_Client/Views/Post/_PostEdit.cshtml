@@ -1,0 +1,84 @@
+<!-- Modal EDIT -->
+<div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered create-post">
+    <div class="modal-content d-flex flex-column" style="max-height: 90vh;">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="editPostModalLabel">Chỉnh sửa bài viết</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+
+      <!-- Thông tin user -->
+      <div class="d-flex align-items-center px-3">
+        <img
+          src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_{@Model.Customer.cus_image}")"
+          style="width: 60px; height: 60px; object-fit: cover;" class="rounded-circle me-2">
+        <div>
+          <div class="fw-bold">@Model.Customer.cus_name</div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body overflow-auto" style="flex: 1;">
+        <form id="editPostForm" method="post" action="/Post/Edit" enctype="multipart/form-data"
+          class="d-flex flex-column gap-3 emoji-form-create">
+          <input type="hidden" id="edit_post_id" name="post_id" />
+          <input type="hidden" id="edit_old_images" name="old_images" />
+          <input type="hidden" id="edit_old_video" name="old_video" />
+
+          <!-- Nội dung -->
+          <div class="post-input-container position-relative">
+            <!-- Chỉ chứa textarea -->
+            <div>
+              <textarea class="form-textarea" id="edit_post_content" name="post_content" rows="4"
+                placeholder="Chỉnh sửa nội dung bài viết..."></textarea>
+            </div>
+
+            <!-- Chỉ chứa emoji icon và picker -->
+            <div class="emoji-control mt-2 position-relative">
+              <button type="button" class="emoji-toggle-btn" aria-label="Chọn emoji">
+                <i class="fas fa-smile"></i>
+              </button>
+
+              <!-- Emoji picker -->
+              <div class="emoji-picker d-none"></div>
+            </div>
+          </div>
+
+          <!-- Ảnh -->
+          <div class="common-image-upload-multiple">
+            <input type="file" id="edit_multi_input" name="post_images" accept="image/*" multiple
+              style="display: none;">
+            <div id="edit_multi_previewBox" class="image-upload-wrapper">
+              <div id="edit_multi_addBtn" class="add-image-box">
+                <i class="bi bi-file-image fs-2"></i>
+                <span class="ms-2">Thêm ảnh</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video preview/edit -->
+          <div id="editVideoPreview" style="display:none; margin-top:10px;">
+            <video id="editPreviewVideo" controls style="max-width: 100%; border-radius: 6px;">
+              <source src="" type="video/mp4">
+              Trình duyệt của bạn không hỗ trợ video.
+            </video>
+            <button type="button" id="editRemoveVideoBtn" class="btn btn-sm btn-danger mt-2">Xóa video</button>
+          </div>
+
+          <!-- Nút thêm video -->
+          <div class="mt-2">
+            <button type="button" id="editAddVideoBtn" class="btn btn-secondary">+ Thêm video</button>
+            <input type="file" id="edit_post_video" name="post_video" accept="video/*" style="display:none;" />
+            <!-- 👈 ĐỔI NAME THÀNH "post_video" -->
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer border-0">
+        <button type="submit" form="editPostForm" class="btn btn-danger w-100">Lưu thay đổi</button>
+      </div>
+    </div>
+  </div>
+</div>

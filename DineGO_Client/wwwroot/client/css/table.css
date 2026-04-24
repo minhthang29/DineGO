@@ -1,0 +1,227 @@
+/* Table and area in restaunrant page _ Thang */
+.grid-layout {
+    min-height: 180px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+}
+
+.table-item {
+    height: 60px;
+    padding: 10px;
+    font-size: 13px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.table-item:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.03);
+}
+
+.table-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--primary-color);
+}
+
+.table-seat {
+    font-size: 12px;
+}
+
+.choices__list--dropdown {
+    white-space: nowrap !important;
+    overflow-x: visible !important;
+}
+
+.choices__item {
+    white-space: nowrap !important;
+}
+
+.choices__inner {
+    min-width: 200px !important;
+}
+
+/* ✅ Tuỳ chỉnh option mặc định trắng */
+.choices__list--dropdown .choices__item {
+    background-color: #ffffff;
+    color: #212529;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* ✅ Khi hover đổi nền đỏ, chữ trắng */
+.choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+
+/* View table with status _ Thang */
+/* Trạng thái: Trống */
+.status-available {
+    border-color: #28a745 !important;
+    background-color: #e6f4ea;
+}
+
+/* Trạng thái: Đã đặt */
+.status-reserved {
+    border-color: #ffc107 !important;
+    background-color: #fff8e1;
+}
+
+/* Trạng thái: Đang dùng */
+.status-inuse {
+    border-color: #dc3545 !important;
+    background-color: #fdecea;
+}
+
+/* Trạng thái không xác định */
+.status-unknown {
+    border-color: #6c757d !important;
+    background-color: #f0f0f0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    gap: 6px;
+}
+
+.legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Màu tương ứng với trạng thái */
+.bg-available {
+    background-color: #e6f4ea;
+    border-color: #28a745;
+}
+
+.bg-reserved {
+    background-color: #fff8e1;
+    border-color: #ffc107;
+}
+
+.bg-inuse {
+    background-color: #fdecea;
+    border-color: #dc3545;
+}
+
+.bg-unknown {
+    background-color: #f0f0f0;
+    border-color: #6c757d;
+}
+
+
+/* Detail Table */
+ .image-upload-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .image-half {
+    width: calc(50% - 5px);
+    /* 2 ảnh / hàng với 10px gap */
+    position: relative;
+  }
+
+  .image-half img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .btn-table-action {
+    transition: all 0.2s ease-in-out;
+    font-weight: 600;
+    padding: 10px 0;
+  }
+
+  .btn-table-action:hover {
+    opacity: 0.9;
+    transform: scale(1.01);
+  }
+
+  .modal-footer .btn i {
+    margin-right: 6px;
+  }
+
+
+
+  /* View Area  */
+   /* Tiêu đề và thanh header */
+    h3.fw-bold.text-danger {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    /* Bảng danh sách */
+    table.table {
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    table thead {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    table th,
+    table td {
+        vertical-align: middle !important;
+        font-size: 15px;
+    }
+
+    table th {
+        font-weight: 600;
+    }
+
+    table td {
+        color: #333;
+    }
+
+    /* Nút hành động */
+    .btn-edit-area,
+    .btn-delete-area {
+        padding: 5px 12px;
+        font-size: 14px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit-area i,
+    .btn-delete-area i {
+        margin-right: 4px;
+    }
+
+    .btn-edit-area:hover {
+        background-color: #0d6efd;
+        color: #fff;
+    }
+
+    .btn-delete-area:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    /* Thông báo khi không có dữ liệu */
+    .alert-info {
+        background-color: #f1f3f5;
+        border-color: #dee2e6;
+        color: #495057;
+        font-size: 15px;
+        padding: 16px;
+        border-radius: 8px;
+    }

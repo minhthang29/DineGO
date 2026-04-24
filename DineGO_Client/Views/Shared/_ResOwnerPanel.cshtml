@@ -1,0 +1,108 @@
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@{
+    var name = HttpContextAccessor.HttpContext?.Session.GetString("res_owner_name");
+    var id = HttpContextAccessor.HttpContext?.Session.GetInt32("resOwner_id");
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DineGO_Client</title>
+    <link rel="icon" type="image/png" href="/common/images/logo.png" />
+    <link rel="stylesheet" href="/common/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/common/lib/slider/owl.carousel.min.css" />
+    <link rel="stylesheet" href="/common/lib/slider/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="/common/css/popup.css" />
+    <link rel="stylesheet" href="/common/css/notification.css" />
+    <link rel="stylesheet" href="/client/css/site.css" />
+    <link rel="stylesheet" href="/common/css/add_image.css" />
+    <link rel="stylesheet" href="/common/css/loading.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/client/css/resowner-chat.css" asp-append-version="true" />
+</head>
+
+<body>
+    <header>
+        @Html.Partial("_Header")
+    </header>
+
+    <main role="main" class="pb-3">
+        @await Html.PartialAsync("_Notification")
+        <div class="container mt-5">
+            <div class="row g-4 align-items-start container-profile">
+                <div class="col-sm-12 col-md-3">
+
+                    <div class="sidebar">
+                        <div class="profile-info">
+                            <h3 class="profile-username">@name _ Chủ nhà hàng🛡</h3>
+                        </div>
+                        <hr>
+
+                        <div class="menu-item @(currentAction == "ChartRestaurant" ? "active" : "")"
+                            onclick="location.href='@Url.Action("ChartRestaurant", "RestaurantOwner")'">Thống kê
+                        </div>
+
+                        <div class="menu-item @(currentAction == "ListRestaurant" ? "active" : "")"
+                            onclick="location.href='@Url.Action("ListRestaurant", "RestaurantOwner", new { resOwner_id = id })'">
+                            Danh sách nhà
+                            hàng
+                        </div>
+
+                        <div class="menu-item @(currentAction == "ActiveAds" ? "active" : "")"
+                            onclick="location.href='@Url.Action("ActiveAds", "RestaurantOwner")'"> Quảng cáo
+                        </div>
+
+                        <div class="menu-item @((currentAction == "Verifications" || currentAction == "RegisterVerification") ? "active" : "")"
+                            onclick="location.href='@Url.Action("Verifications", "RestaurantOwner")'">Giấy phép kinh
+                            doanh</div>
+                        <div class="menu-item @(currentAction == "ManageMessages" ? "active" : "")"
+                            onclick="location.href='@Url.Action("ManageMessages", "RestaurantOwner")'">Tin nhắn khách
+                            hàng
+                        </div>
+
+                        <div class="menu-item" onclick="location.href='@Url.Action("Profile", "Customer")'">Quay lại
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-9">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </main>
+
+    @* Loading *@
+    <div id="global-overlay" class="d-none">
+        <div id="global-loader">
+            <div id="loading-text">
+                <span class="loading-word">Loading</span>
+                <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+                <!-- Dấu chấm sẽ animate nhảy trái-phải -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        @Html.Partial("_Footer")
+    </footer>
+
+    <script src="/common/js/popup.js"></script>
+    <script src="/common/js/notification.js"></script>
+    <script src="/common/lib/jquery/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/common/lib/slider/owl.carousel.min.js"></script>
+    <script src="/client/js/site.js" asp-append-version="true"></script>
+    <script src="/client/js/resowner-chat.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
+    <script src="/common/js/add_image.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

@@ -1,0 +1,89 @@
+@model Core.Common.PaginatedList<Core.Models.RestaurantOwner>
+@{
+    ViewData["Title"] = "Quản lí chủ nhà hàng";
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["PaginationAction"] = "Index";
+    ViewData["PaginationController"] = "RestaurantOwner";
+}
+
+<h2 class="text-2xl font-bold mb-6">Quản lí chủ nhà hàng</h2>
+<div class="mb-4">
+    <a href="@Url.Action("Create", "RestaurantOwner")"
+       class="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold transition">
+        <i class="fas fa-plus mr-1"></i> Thêm chủ nhà hàng
+    </a>
+</div>
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Khách hàng</th>
+                <th class="px-6 py-3 text-left">Tên chủ nhà hàng</th>
+                <th class="px-6 py-3 text-left">Ngày tạo</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @foreach (var owner in Model.Items)
+            {
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <td class="px-6 py-4">@owner.res_owner_id</td>
+                    <td class="px-6 py-4">@owner.customer?.cus_name</td>
+                    <td class="px-6 py-4">@owner.res_owner_name</td>
+                    <td class="px-6 py-4">@owner.res_owner_created_date.ToString("yyyy-MM-dd")</td>
+                    <td class="px-6 py-4 relative">
+                        <div class="flex justify-center">
+                            <button type="button"
+                                class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                                onclick="toggleActionMenu(this)">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="absolute right-0 z-20 bg-white dark:bg-gray-800 border border-gray-300 rounded shadow-lg min-w-[140px] hidden action-menu">
+                                <a href="@Url.Action("Edit", "RestaurantOwner", new { id = owner.res_owner_id })"
+                                    class="block px-4 py-2 text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-800">
+                                    <i class="fas fa-edit mr-2"></i> Sửa
+                                </a>
+                                <button type="button"
+                                    class="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-800"
+                                    onclick="deleteRestaurantOwner(@owner.res_owner_id)">
+                                    <i class="fas fa-trash-alt"></i> Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@await Html.PartialAsync("_Pagination", Model)
+
+<script>
+function toggleActionMenu(btn) {
+    document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+    var menu = btn.nextElementSibling;
+    if (menu) menu.classList.toggle('hidden');
+    document.addEventListener('click', function handler(e) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.add('hidden');
+            document.removeEventListener('click', handler);
+        }
+    });
+}
+function deleteRestaurantOwner(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa nhà hàng này?')) {
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/RestaurantOwner/Delete';
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'id';
+        input.value = id;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>

@@ -1,0 +1,168 @@
+@model List<Core.Models.Restaurant>
+@using Newtonsoft.Json
+@{
+  ViewData["Title"] = "Search";
+}
+@using Microsoft.AspNetCore.Http
+@{
+  var sessAddr = Context.Session.GetString("USER_LOCATION");
+}
+@* Display list suggest restaurant *@
+<div class="container res-wrap">
+  @{
+    var simpleList = Model.Select(r => new
+    {
+      id = r.res_id,
+      name = r.res_name,
+      address = r.res_address,
+      image = (r.res_images_json != null && r.res_images_json.Count > 0)
+      ? $"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/restaurants/thumb_{r.res_images_json.First()}" 
+      : Url.Content("~/common/images/banner.jpg")
+    }).ToList();                                                                                                                                         
+  }
+  <div id="restaurantData" data-restaurants='@Html.Raw(JsonConvert.SerializeObject(simpleList))'></div> @* Call js *@
+
+  <form asp-controller="Restaurant" asp-action="Search" method="get" class="row g-2">
+    <div class="col-12 col-md-2">
+      <button type="button" class="btn btn-outline-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#mapModal">
+        📍 Chọn vị trí của bạn
+      </button>
+      <input type="text" id="userAddress" name="address" class="form-control" placeholder="Vị trí đã chọn"
+        value="@(!string.IsNullOrEmpty(Context.Request.Query["address"]) ? Context.Request.Query["address"] : sessAddr)" />
+    </div>
+
+    <div class="col-12 col-md-6 position-relative">
+      <input type="text" name="name" class="search-name form-control search-input"
+        placeholder="Bạn muốn tìm kiếm nhà hàng nào?" value="@Context.Request.Query["name"]">
+      <span class="clear-input" id="clearInput">&times;</span>
+      <div class="autocomplete-suggestions" id="autocompleteSuggestions"></div>
+    </div>
+    <div class="col-12 col-md-2">
+      <button type="submit" class="btn search-btn">
+        <i class="bi bi-search"></i> Tìm kiếm
+      </button>
+    </div>
+    <div class="col-12 col-md-2 phone-contact">
+      <i class="bi bi-telephone-fill phone-icon">1900 6005</i>
+    </div>
+  </form>
+
+  <div id="restaurantResults" class="search-results">
+    @if (!Model.Any())
+    {
+      <p class="no-result-restaurant">Không tìm thấy nhà hàng "@Context.Request.Query["name"]" của bạn.</p>
+    }
+    else
+    {
+      <div class="restaurant-container">
+        @foreach (var restaurant in Model)
+        {
+          <a href="@Url.Action("Details", "Restaurant", new { id = restaurant.res_id })" class="restaurant-card-link">
+            <div class="restaurant-card">
+              <img
+                src="@(restaurant.res_images_json != null && restaurant.res_images_json.Count > 0 
+                                                                                                                                                  ? $"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/restaurants/full_{restaurant.res_images_json.First()}" 
+                                                                                                                                                  : Url.Content("~/common/images/banner.jpg"))"
+                alt="Restaurant Image" class="restaurant-image"
+                onerror="this.onerror=null; this.src='/common/images/banner.jpg';" />
+
+             <div class="restaurant-content p-2">
+    <!-- Tên nhà hàng -->
+    <h5 class="restaurant-name fw-bold text-dark mb-2">
+        @restaurant.res_name
+    </h5>
+
+    <!-- Địa chỉ + Giờ mở cửa -->
+    <div class="d-flex justify-content-between small text-muted mb-1">
+        <span>📍 @restaurant.res_address</span>
+        <span>⏰ @(restaurant.res_open_time?.ToString(@"hh\:mm") ?? "--:--") - @(restaurant.res_close_time?.ToString(@"hh\:mm") ?? "--:--")</span>
+    </div>
+
+    <!-- SĐT -->
+    @if (!string.IsNullOrEmpty(restaurant.res_phone))
+    {
+        <div class="small text-muted mb-2">
+            📞 @restaurant.res_phone
+        </div>
+    }
+
+    <!-- Rating + Phí đặt cọc -->
+    @{
+        var rate = restaurant.res_rate ?? 0;
+        int fullStars = (int)Math.Floor(rate);
+        double rateValue = Convert.ToDouble(rate);
+        bool hasHalfStar = (rateValue - fullStars) >= 0.5;
+        int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+        var starHtml = new System.Text.StringBuilder();
+        for (int i = 0; i < fullStars; i++) { starHtml.Append("★"); }
+        if (hasHalfStar) { starHtml.Append("⯨"); }
+        for (int i = 0; i < emptyStars; i++) { starHtml.Append("☆"); }
+    }
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="rating text-warning">
+            @Html.Raw(starHtml.ToString())
+            <small>(@restaurant.res_rate_count đánh giá)</small>
+        </span>
+        <span class="restaurant-detail-fee text-danger fw-semibold">
+            @string.Format("{0:N0} VND", restaurant.res_reservation_fee)
+        </span>
+    </div>
+
+    <!-- Nút đặt chỗ -->
+    <button class="btn btn-danger w-100 fw-bold mt-3">
+        Đặt chỗ ngay
+    </button>
+</div>
+
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</div>
+<!-- Modal Map -->
+<div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="mapModalLabel">Chọn vị trí của bạn</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <div id="map" style="height: 500px;"></div>
+        <p class="mt-2">Vị trí đã chọn: <span id="selectedLocation">Chưa chọn</span></p>
+      </div>
+           <div class="mb-3">
+                                <label for="province" class="form-label">Chọn Tỉnh/Thành phố</label>
+                                <select id="province" class="form-select" onchange="loadDistricts()">
+                                    <option value="">-- Tỉnh/Thành phố --</option>
+                                </select>
+                            </div>
+      <div class="modal-footer">
+        <button id="btnResetLocation" type="button" class="btn btn-outline-secondary btn-sm mt-2">
+          📍 Chọn vị trí hiện tại
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-danger" id="confirmLocation">Xác nhận</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/client/js/restaurant.js" asp-append-version="true"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const addressInput = document.getElementById("userAddress");
+    const form = addressInput?.closest("form");
+    
+    const hasValue = addressInput && addressInput.value.trim() !== "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasQueryAddress = urlParams.has("address");
+
+    if (hasValue && !hasQueryAddress && form) {
+        form.submit();
+    }
+});
+</script>

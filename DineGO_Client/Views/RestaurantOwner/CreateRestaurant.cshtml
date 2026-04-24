@@ -1,0 +1,431 @@
+@model Core.Models.Restaurant
+
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Tạo nhà hàng";
+}
+
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<div class="sidebar" id="create-restaurant">
+    <div class="flex-grow-1">
+        <h1 class="text-center text-danger mb-4 fw-bold">TẠO NHÀ HÀNG</h1>
+
+        <form id="restaurantForm" asp-action="CreateRestaurant" asp-controller="RestaurantOwner" method="post"
+            enctype="multipart/form-data">
+            <label class="form-label fw-semibold">Ảnh đại diện</label>
+            <div id="imageBoxContainer"
+                class="position-relative mx-auto mb-3 d-flex justify-content-center align-items-center" cursor: pointer;
+                border-radius: 30px;">
+                <img id="restaurantPreviewImg" class="img-thumbnail rounded shadow-sm w-100 h-100"
+                    style="object-fit: cover; object-position: center; display: none;" alt="Preview" />
+                <button type="button" id="removeRestaurantImageBtn"
+                    class="btn btn-sm btn-danger position-absolute top-0 end-0 translate-middle p-1"
+                    style="z-index: 10; display: none;">
+                    <i class="bi bi-x-lg small"></i>
+                </button>
+                <div id="addRestaurantImageBtn" class="text-center text-secondary">
+                    <i class="bi bi-plus-circle fs-1"></i><br />
+                    <span class="fw-semibold">Thêm ảnh</span>
+                </div>
+                <input type="file" id="restaurantImageInput" name="images" accept="image/*" style="display: none;" />
+            </div>
+            <span class="text-danger" id="restaurantImageError"></span>
+
+            <!-- Tên nhà hàng -->
+            <div class="mb-3">
+                <label asp-for="res_name" class="form-label fw-semibold">Tên nhà hàng</label>
+                <input asp-for="res_name" id="res_name" class="form-control" placeholder="Nhập tên nhà hàng" required />
+                <span class="text-danger" id="restaurantNameError"></span>
+            </div>
+            <!-- dia chi nha hang -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Địa chỉ nhà hàng</label>
+                <div class="d-flex gap-2 w-100">
+                    <!-- Địa chỉ được điền từ bản đồ -->
+                    <input type="text" name="res_address" id="addressInput" class="form-control flex-grow-1"
+                        placeholder="Chọn vị trí từ bản đồ" value="@Model.res_address" style="min-width: 0;" readonly />
+
+                    <!-- Nút mở bản đồ -->
+                    <button type="button" class="btn btn-outline-danger px-3" style="min-width: 60px;"
+                        onclick="openLocationPicker()">📍</button>
+                </div>
+
+                <!-- Trường ẩn để lưu tọa độ -->
+                <input type="hidden" id="cus_latitude" name="res_latitude" value="@Model.res_latitude" />
+                <input type="hidden" id="cus_longitude" name="res_longitude" value="@Model.res_longitude" />
+                <span id="addressError" class="text-danger small"></span>
+            </div>
+
+            <!-- Giờ mở cửa & Giờ đóng cửa -->
+            @{
+                // parse giờ mở & đóng để so sánh (nếu có giá trị từ model)
+                TimeSpan? openTime = TimeSpan.TryParse(Model.res_open_time_str, out var ot) ? ot : null;
+                TimeSpan? closeTime = TimeSpan.TryParse(Model.res_close_time_str, out var ct) ? ct : null;
+
+                var Slots = Enumerable.Range(0, 25)
+                .SelectMany(h => new[] { $"{h:00}:00", $"{h:00}:30" })
+                .Where(t => string.Compare(t, "00:00") >= 0 && string.Compare(t, "24:00") <= 0)
+                .ToList();
+            }
+
+            <div class="mb-3 row">
+                <div class="col-md-6">
+                    <label asp-for="res_open_time_str" class="form-label fw-semibold" required>Giờ mở cửa</label>
+                    <select asp-for="res_open_time_str" class="form-select">
+                        <option value="">-- Chọn giờ mở --</option>
+                        @foreach (var slot in Slots)
+                        {
+                            <option value="@slot" selected="@(Model.res_open_time_str == slot)">
+                                @slot
+                            </option>
+                        }
+
+                    </select>
+                    <span class="text-danger small" id="openTimeError"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="res_close_time_str" class="form-label fw-semibold" required>Giờ đóng cửa</label>
+                    <select asp-for="res_close_time_str" class="form-select">
+                        <option value="">-- Chọn giờ đóng --</option>
+                        @foreach (var slot in Slots)
+                        {
+                            var disable = openTime.HasValue && TimeSpan.Parse(slot) <= openTime.Value;
+                            <option value="@slot" selected="@(Model.res_close_time_str == slot)" hidden="@(disable)">
+                                @slot
+                            </option>
+
+                        }
+                    </select>
+                    <span class="text-danger small" id="closeTimeError"></span>
+                </div>
+            </div>
+
+            <!-- Email & Sđt -->
+            <div class="mb-3 row">
+                <div class="col-md-6">
+                    <label asp-for="res_email" class="form-label fw-semibold">Email</label>
+                    <input asp-for="res_email" class="form-control" type="email" placeholder="Nhập email" />
+                    <span asp-validation-for="res_email" class="text-danger small" id="emailError"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="res_phone" class="form-label fw-semibold">Số điện thoại</label>
+                    <input asp-for="res_phone" class="form-control" placeholder="Nhập số điện thoại" />
+                    <span asp-validation-for="res_phone" class="text-danger small" id="phoneError"></span>
+
+                </div>
+            </div>
+
+            <!-- Mô tả -->
+            <div class="mb-3">
+                <label asp-for="res_description" class="form-label fw-semibold">Mô tả</label>
+                <textarea asp-for="res_description" class="form-control" rows="3"
+                    placeholder="Mô tả về nhà hàng"></textarea>
+            </div>
+
+            <!-- Phí đặt bàn -->
+            <div class="mb-3">
+                <label asp-for="res_reservation_fee" class="form-label fw-semibold">Phí đặt bàn</label>
+                <div class="input-group">
+                    <input asp-for="res_reservation_fee" class="form-control" type="number" />
+                    <span class="input-group-text btn btn-success">VND</span>
+                </div>
+                <span class="text-danger" id="feeError"></span>
+            </div>
+
+            <!-- Giá trị đơn hàng tối thiểu & Tối đa -->
+            <div class="mb-3 row">
+                <div class="col-md-6">
+                    <label asp-for="res_price_order_min" class="form-label fw-semibold">Giá trị đơn hàng tối
+                        thiểu</label>
+                    <div class="input-group">
+                        <input asp-for="res_price_order_min" class="form-control" type="number"
+                            placeholder="VD: 200000" />
+                        <span class="input-group-text btn btn-success">VND</span>
+                    </div>
+                    <span class="text-danger" id="orderMinError"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="res_price_order_max" class="form-label fw-semibold">Giá trị đơn hàng tối đa</label>
+                    <div class="input-group">
+                        <input asp-for="res_price_order_max" class="form-control" type="number"
+                            placeholder="VD: 5000000" />
+                        <span class="input-group-text btn btn-success">VND</span>
+                    </div>
+                    <span class="text-danger" id="orderMaxError"></span>
+                </div>
+            </div>
+
+            <div class="mb-3 row">
+                <div class="col-md-6">
+                    <label asp-for="res_quantity_order_max" class="form-label fw-semibold">Số lượng tối đa mỗi
+                        món</label>
+                    <div class="input-group">
+                        <input asp-for="res_quantity_order_max" class="form-control" type="number"
+                            placeholder="VD: 50" />
+                        <span class="input-group-text btn btn-danger">món</span>
+                    </div>
+                    <span class="text-danger" id="qtyMaxError"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="res_last_order_minutes" class="form-label fw-semibold">
+                        Thời gian đặt món cuối cùng trước giờ đóng cửa</label>
+                    <div class="input-group">
+                        <input asp-for="res_last_order_minutes" class="form-control" type="number" step="1"
+                            placeholder="VD: 60" />
+                        <span class="input-group-text btn btn-primary">phút</span>
+                    </div>
+                    <span class="text-danger" id="lastOrderError"></span>
+                </div>
+            </div>
+
+            <!-- Hidden -->
+            <input type="hidden" asp-for="res_owner_id" />
+            <input type="hidden" asp-for="cate_id" />
+            <input type="hidden" asp-for="res_is_use" value="true" />
+
+            <!-- Submit + Quay lại -->
+            <div class="d-flex gap-2 mb-3">
+                <button type="submit" class="btn btn-danger fw-semibold flex-fill">💾 Thêm</button>
+                <a href="javascript:history.back()" class="btn btn-outline-secondary fw-semibold flex-fill">🔙 Quay
+                    lại</a>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Modal bản đồ -->
+<div class="modal fade" id="mapModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chọn vị trí nhà hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="map" style="height: 500px;"></div>
+                <div class="mt-3">
+                    <label class="form-label fw-semibold">Địa chỉ tự động nhận diện:</label>
+                    <p id="selectedLocation" class="text-danger"></p>
+
+                    <label class="form-label">Số nhà / tên đường (thêm thủ công nếu cần):</label>
+                    <input type="text" class="form-control" id="manualAddress" placeholder="Số nhà, tên đường" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="gpsButton" class="btn btn-outline-danger" type="button">Lấy vị trí hiện tại</button>
+                <button id="confirmLocation" class="btn btn-danger">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Layout */
+    #create-restaurant.sidebar {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    /* content */
+    #create-restaurant.sidebar>.flex-grow-1 {
+        flex: 1;
+        max-width: 100%;
+        background: #fff;
+        padding: 20px;
+    }
+
+    /* Desktop*/
+    #imageBoxContainer {
+        width: 500px;
+        height: 350px;
+        cursor: pointer;
+        border-radius: 30px;
+    }
+
+
+    /* Responsive for mobile */
+    @@media (max-width: 768px) {
+        #create-restaurant.sidebar {
+            flex-direction: column;
+        }
+
+        #create-restaurant.sidebar>.flex-grow-1 {
+            max-width: 100%;
+        }
+
+        #imageBoxContainer {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4/3;
+            max-width: 100%;
+        }
+    }
+    }
+</style>
+<script src="/client/js/create_restaurant.js" asp-append-version="true"></script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="/client/js/locationPicker.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("restaurantForm");
+
+            form.addEventListener("submit", function (e) {
+                
+                let isValid = true;
+
+                // Xóa lỗi cũ
+                const errorSpans = document.querySelectorAll(".text-danger");
+                errorSpans.forEach(span => span.textContent = "");
+
+                // Lấy giá trị input
+                const nameInput = document.getElementById("res_name");
+                const restaurantImageInput = document.getElementById("restaurantImageInput").files[0];
+                const lat = document.getElementById("cus_latitude").value;
+                const lng = document.getElementById("cus_longitude").value;
+                const email = document.querySelector("[name='res_email']").value.trim();
+                const phone = document.querySelector("[name='res_phone']").value.trim();
+                const fee = document.querySelector("[name='res_reservation_fee']").value.trim();
+                const orderMin = parseFloat(document.querySelector("[name='res_price_order_min']").value.trim());
+                const orderMax = parseFloat(document.querySelector("[name='res_price_order_max']").value.trim());
+                const qtyMax = document.querySelector("[name='res_quantity_order_max']").value.trim();
+                const lastOrder = document.querySelector("[name='res_last_order_minutes']").value.trim();
+                const openTime = document.querySelector("[name='res_open_time_str']").value;
+                const closeTime = document.querySelector("[name='res_close_time_str']").value;
+
+                // Validate tên nhà hàng
+                if (!nameInput.value.trim()) {
+                    document.getElementById("restaurantNameError").textContent = "Tên nhà hàng không được để trống.";
+                    isValid = false;
+                }
+
+                // Validate ảnh
+                if (!restaurantImageInput) {
+                    document.getElementById("restaurantImageError").textContent = "Vui lòng chọn ảnh nhà hàng.";
+                    isValid = false;
+                }
+
+                // Validate vị trí
+                if (!lat || !lng) {
+                    document.getElementById("addressError").textContent = "Vui lòng chọn vị trí từ bản đồ.";
+                    isValid = false;
+                }
+                // Validate giờ mở cửa
+                if (!openTime) {
+                    document.getElementById("openTimeError").textContent = "Vui lòng chọn giờ mở cửa.";
+                    isValid = false;
+                }
+
+                // Validate giờ đóng cửa
+                if (!closeTime) {
+                    document.getElementById("closeTimeError").textContent = "Vui lòng chọn giờ đóng cửa.";
+                    isValid = false;
+                }
+
+                // Validate email: bắt buộc nhập & đúng định dạng
+                if (!email) {
+                    document.getElementById("emailError").textContent = "Email không được để trống.";
+                    isValid = false;
+                } else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                    document.getElementById("emailError").textContent = "Email không đúng định dạng.";
+                    isValid = false;
+                }
+
+
+                // Validate số điện thoại: bắt buộc nhập & đúng định dạng
+                if (!phone) {
+                    document.getElementById("phoneError").textContent = "Số điện thoại không được để trống.";
+                    isValid = false;
+                } else if (!/^\d{9,11}$/.test(phone)) {
+                    document.getElementById("phoneError").textContent = "Số điện thoại phải là số và từ 9-11 chữ số.";
+                    isValid = false;
+                }
+
+
+                // Validate số âm hoặc chữ
+                function isNegativeOrNaN(value) {
+                    return isNaN(value) || Number(value) < 0;
+                }
+
+                if (isNegativeOrNaN(fee)) {
+                    document.getElementById("feeError").textContent = "Phí đặt bàn không hợp lệ.";
+                    isValid = false;
+                }
+
+                if (orderMin < 200000 || orderMin > 100000000) {
+                    document.getElementById("orderMinError").textContent = "Giá trị tối thiểu phải từ 200.000 đến 100.000.000 VND";
+                    isValid = false;
+                }
+
+                if (orderMax < 200000 || orderMax > 100000000) {
+                    document.getElementById("orderMaxError").textContent = "Giá trị tối đa phải từ 200.000 đến 100.000.000 VND";
+                    isValid = false;
+                }
+
+                if (orderMin > orderMax) {
+                    document.getElementById("orderMaxError").textContent = "Giá trị tối đa phải lớn hơn giá trị tối thiểu.";
+                    isValid = false;
+                }
+
+                if (isNegativeOrNaN(orderMin)) {
+                    document.getElementById("orderMinError").textContent = "Giá trị đơn hàng tối thiểu không hợp lệ.";
+                    isValid = false;
+                }
+                if (isNegativeOrNaN(orderMax)) {
+                    document.getElementById("orderMaxError").textContent = "Giá trị đơn hàng tối đa không hợp lệ.";
+                    isValid = false;
+                }
+                if (isNegativeOrNaN(qtyMax)) {
+                    document.getElementById("qtyMaxError").textContent = "Số lượng tối đa không hợp lệ.";
+                    isValid = false;
+                }
+
+                if (isNaN(qtyMax) || qtyMax < 1 || qtyMax > 200) {
+                    document.getElementById("qtyMaxError").textContent = "Số lượng tối đa mỗi món phải từ 1 đến 200.";
+                    isValid = false;
+                }
+                if (!lastOrder) {
+                    document.getElementById("lastOrderError").textContent = "Thời gian đặt món không được để trống.";
+                    isValid = false;
+                }
+                if (isNegativeOrNaN(lastOrder)) {
+                    document.getElementById("lastOrderError").textContent = "Thời gian đặt món cuối không hợp lệ.";
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+    </script>
+}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const openSelect = document.querySelector('[name="res_open_time_str"]');
+        const closeSelect = document.querySelector('[name="res_close_time_str"]');
+
+        function validateCloseOptions() {
+            const openTime = openSelect.value;
+            [...closeSelect.options].forEach(opt => {
+                if (!openTime) {
+                    opt.disabled = false;
+                } else {
+                    opt.disabled = (opt.value <= openTime && opt.value !== "");
+                }
+            });
+        }
+
+        openSelect.addEventListener("change", function () {
+            // Khi đổi giờ mở → reset giờ đóng
+            closeSelect.value = "";
+            validateCloseOptions();
+        });
+
+        validateCloseOptions();
+    });
+</script>

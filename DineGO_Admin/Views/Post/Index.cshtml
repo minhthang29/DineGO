@@ -1,0 +1,69 @@
+@model List<Core.Models.Post>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Bài viết";
+}
+
+<h2 class="text-2xl font-bold mb-6">Quản lý Bài viết</h2>
+<div class="mb-4">
+    <a href="@Url.Action("Create", "Post")" class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <i class="fas fa-plus"></i> Thêm Bài viết
+    </a>
+</div>
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Tác giả</th>
+                <th class="px-6 py-3 text-left">Nội dung</th>
+                <th class="px-6 py-3 text-left">Ảnh</th>
+                <th class="px-6 py-3 text-left">Ngày tạo</th>
+                <th class="px-6 py-3 text-left">Lượt thích</th>
+                <th class="px-6 py-3 text-left">Bình luận</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var p in Model)
+                {
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <td class="px-6 py-4">@p.post_id</td>
+                        <td class="px-6 py-4">@p.customer.cus_name</td>
+                        <td class="px-6 py-4">@p.post_content</td>
+                        <td class="px-6 py-4">
+                            @if (!string.IsNullOrEmpty(p.post_image))
+                            {
+                                <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/posts/thumb_@p.post_images_json[0]" alt="Ảnh bài viết" class="w-20 h-14 object-cover rounded shadow" />
+                            }
+                        </td>
+                        <td class="px-6 py-4">@p.post_created_date.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="px-6 py-4">@p.post_like_count</td>
+                        <td class="px-6 py-4">@p.post_comment_count</td>
+                        <td class="px-6 py-4">
+                            <div class="flex space-x-3 text-lg">
+                                <a href="@Url.Action("Edit", "Post", new { id = p.post_id })" class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="@Url.Action("Delete", "Post", new { id = p.post_id })" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài viết này?');" class="inline">
+                                    <button type="submit" class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="9" class="text-center py-4 text-gray-500">Không có bài viết nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

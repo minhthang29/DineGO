@@ -1,0 +1,135 @@
+@model List<Core.Models.Order>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Order";
+}
+
+<h2 class="text-2xl font-bold mb-6">Quản lý Đơn Đặt Hàng</h2>
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">Mã Đơn</th>
+                <th class="px-6 py-3 text-left">Khách hàng</th>
+                <th class="px-6 py-3 text-left">Nhà hàng</th>
+                <th class="px-6 py-3 text-left">Ngày đặt</th>
+                <th class="px-6 py-3 text-left">Trạng thái</th>
+                <th class="px-6 py-3 text-left">Tổng tiền</th>
+                <th class="px-6 py-3 text-left">Giảm giá</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @foreach (var order in Model)
+            {
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <td class="px-6 py-4 font-semibold">
+                        <a href="@Url.Action("Details", new { id = order.order_id })" 
+                           class="text-blue-600 hover:text-blue-800 hover:underline">
+                            #@order.order_id
+                        </a>
+                    </td>
+                    <td class="px-6 py-4">@order.customer?.cus_name</td>
+                    <td class="px-6 py-4">@order.restaurant?.res_name</td>
+                    <td class="px-6 py-4">@order.order_date.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="px-6 py-4">
+                        @{
+                            string statusText = order.order_status switch
+                            {
+                                0 => "Chờ xác nhận",
+                                1 => "Đã xác nhận",
+                                2 => "Đang giao",
+                                3 => "Hoàn thành",
+                                4 => "Đã hủy",
+                                _ => "Không xác định"
+                            };
+                            string statusColor = order.order_status switch
+                            {
+                                0 => "bg-yellow-100 text-yellow-800 border-yellow-300",
+                                1 => "bg-blue-100 text-blue-800 border-blue-300",
+                                2 => "bg-indigo-100 text-indigo-800 border-indigo-300",
+                                3 => "bg-green-100 text-green-800 border-green-300",
+                                4 => "bg-red-100 text-red-800 border-red-300",
+                                _ => "bg-gray-100 text-gray-800 border-gray-300"
+                            };
+                        }
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold border @statusColor">@statusText</span>
+                    </td>
+                    <td class="px-6 py-4 text-green-600 font-bold">@order.order_total.ToString("N0") VNĐ</td>
+                    <td class="px-6 py-4 text-red-600">
+                        @(order.order_price_discount.HasValue ? order.order_price_discount.Value.ToString("N0") + " VND" : "-")
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <!-- View Details Button -->
+                            <a href="@Url.Action("Details", new { id = order.order_id })" 
+                               class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition">
+                                <i class="fas fa-eye mr-1"></i>
+                            </a>
+                            
+                            <!-- Status Update -->
+                            @if (order.order_status != 3 && order.order_status != 4) // Not completed or cancelled
+                            {
+                                <form method="post" action="/Order/ChangeStatus" style="display:inline;">
+                                    <input type="hidden" name="orderId" value="@order.order_id" />
+                                    <select name="newStatus" class="border rounded px-2 py-1 text-xs"
+                                            onchange="updateSelectColor(this)">
+                                        <option value="0" @(order.order_status == 0 ? "selected" : "")>Chờ xác nhận</option>
+                                        <option value="1" @(order.order_status == 1 ? "selected" : "")>Đã xác nhận</option>
+                                        <option value="2" @(order.order_status == 2 ? "selected" : "")>Đang giao</option>
+                                        <option value="3" @(order.order_status == 3 ? "selected" : "")>Hoàn thành</option>
+                                        <option value="4" @(order.order_status == 4 ? "selected" : "")>Đã hủy</option>
+                                    </select>
+                                    <button type="submit" class="ml-1 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-gray-500 text-xs">@statusText</span>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+<script>
+function updateSelectColor(select) {
+    select.classList.remove(
+        "bg-yellow-100", "text-yellow-800", "border-yellow-300",
+        "bg-blue-100", "text-blue-800", "border-blue-300",
+        "bg-indigo-100", "text-indigo-800", "border-indigo-300",
+        "bg-green-100", "text-green-800", "border-green-300",
+        "bg-red-100", "text-red-800", "border-red-300"
+    );
+    
+    switch (select.value) {
+        case "0":
+            select.classList.add("bg-yellow-100", "text-yellow-800", "border-yellow-300");
+            break;
+        case "1":
+            select.classList.add("bg-blue-100", "text-blue-800", "border-blue-300");
+            break;
+        case "2":
+            select.classList.add("bg-indigo-100", "text-indigo-800", "border-indigo-300");
+            break;
+        case "3":
+            select.classList.add("bg-green-100", "text-green-800", "border-green-300");
+            break;
+        case "4":
+            select.classList.add("bg-red-100", "text-red-800", "border-red-300");
+            break;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('select[name="newStatus"]').forEach(updateSelectColor);
+});
+</script>
+}

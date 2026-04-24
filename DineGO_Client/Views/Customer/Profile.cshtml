@@ -1,0 +1,321 @@
+@using Core.Constant
+@{
+    Layout = "../../Views/Shared/_Profile.cshtml";
+}
+<!-- Profile Content (Chiếm 8 cột) -->
+<div class="col-md-9 d-flex justify-content-center">
+    <div class="profile-container_form">
+        <!-- *** SPAM WARNING SECTION *** -->
+        @if (Model.Customer.cus_status == 1)
+        {
+            <div class="spam-warning-banner">
+                <div class="spam-warning-content">
+                    <div class="spam-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="spam-text">
+                        <h6 class="mb-1">⚠️ Tài khoản bị đánh dấu spam</h6>
+                        <p class="mb-0">Tài khoản của bạn đã bị đánh dấu do có nhiều đơn hàng bị hủy. Vui lòng cải thiện thói quen đặt hàng.</p>
+                    </div>
+                </div>
+            </div>
+        }
+        <form method="post" asp-action="UpdateProfile" asp-controller="Customer" enctype="multipart/form-data">
+            <input type="hidden" name="cus_id" value="@Model.Customer.cus_id" />
+            <!-- Ảnh đại diện -->
+            <div class="profile-pic">
+                <!-- *** ADD SPAM INDICATOR ON AVATAR *** -->
+                <div class="profile-pic-container">
+                    <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/full_@Model.Customer.cus_image"
+                        alt="Profile Picture" id="profileImage" style="width: 250px; height: 250px; border-radius: 50%;" 
+                        onerror="this.onerror=null; this.src='https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_default.jpeg';"/>
+                    
+                    @if (Model.Customer.cus_status == 1)
+                    {
+                        <div class="spam-badge">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    }
+                </div>
+                <input type="file" name="imageFile" class="form-control mt-2" id="imageInput">
+                <input type="hidden" name="cus_image" value="@Model.Customer.cus_image" />
+            </div>
+
+            <div class="form-group">
+                <label>Họ và tên</label>
+                <input type="text" name="cus_name" class="form-control" value="@Model.Customer.cus_name" />
+            </div>
+            <div class="text-danger">@Html.ValidationMessage("cus_name")</div>
+            <div class="form-group gender-group">
+                <label class="group-label">Giới tính</label><br />
+
+                @{
+                    var gender = Model.Customer.cus_gender == true ? "true" : "false";
+                }
+
+                <label class="custom-radio">
+                    <input type="radio" name="cus_gender" value="true" @(gender == "true" ? "checked" : "") />
+                    <span class="radio-mark"></span>
+                    <span class="radio-label">Nam</span>
+                </label>
+
+                <label class="custom-radio">
+                    <input type="radio" name="cus_gender" value="false" @(gender == "false" ? "checked" : "") />
+                    <span class="radio-mark"></span>
+                    <span class="radio-label">Nữ</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="cus_email" class="form-control" value="@Model.Customer.cus_email" readonly>
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="tel" name="cus_phone" class="form-control" value="@Model.Customer.cus_phone" required />
+            </div>
+            <div class="text-danger">@Html.ValidationMessage("cus_phone")</div>
+            <div class="form-group">
+                <label class="form-label">Địa chỉ</label>
+
+                <div class="d-flex gap-2 w-100">
+                    <input type="text" name="cus_address" id="addressInput" class="form-control flex-grow-1"
+                        style="min-width: 0;" value="@Model.Customer.cus_address" onclick="openLocationPicker()" readonly/>
+                    <button type="button" class="btn btn-outline-danger px-3" style="min-width: 60px;"
+                        onclick="openLocationPicker()">📍</button>
+                </div>
+            </div>
+
+            <div class="text-danger">@Html.ValidationMessage("cus_address")</div>
+            <div class="form-group">
+                <label>Sinh nhật</label>
+                <input type="date" name="cus_birthday" class="form-control"
+                    value="@(Model.Customer?.cus_birthday?.ToString("yyyy-MM-dd") ?? "")" />
+            </div>
+            <input type="hidden" name="cus_latitude" id="cus_latitude" value="@Model.Customer.cus_latitude" />
+            <input type="hidden" name="cus_longitude" id="cus_longitude" value="@Model.Customer.cus_longitude" />
+
+            <div class="form-group d-flex justify-content-center mt-3">
+                <button type="submit" class="btn btn-primary"
+                    style="background-color: #C0392B; color: white; border: none;">Cập nhật</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<div class="modal fade" id="mapModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Chọn vị trí của bạn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="map" style="height: 500px;"></div>
+                <div class="mb-3 mt-3">
+                    <label class="form-label fw-semibold">🏠 Số nhà, tên đường, tên hẻm</label>
+                    <input type="text" id="manualAddress" class="form-control"
+                        placeholder="VD: 233, Nguyễn Văn Cừ, hẻm 311">
+                </div>
+
+                <p>📍 Vị trí đã chọn: <span id="selectedLocation">Chưa chọn</span></p>
+            </div>
+            <div class="modal-footer">
+                <button id="gpsButton" class="btn btn-sm btn-danger" style="top: 10px; right: 10px; z-index: 999;">
+                    📍 Vị trí hiện tại
+                </button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button class="btn btn-danger" id="confirmLocation">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* *** SPAM WARNING STYLES *** */
+    .spam-warning-banner {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        border: 2px solid #ffc107;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(255, 193, 7, 0.1);
+        animation: pulseWarning 2s infinite;
+    }
+
+    .spam-warning-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .spam-icon {
+        font-size: 24px;
+        color: #856404;
+    }
+
+    .spam-text h6 {
+        color: #856404;
+        font-weight: bold;
+    }
+
+    .spam-text p {
+        color: #6c5a00;
+        font-size: 14px;
+    }
+
+    /* Profile picture container for spam badge */
+    .profile-pic-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .spam-badge {
+        position: absolute;
+        top: 40px;
+        right: 30px;
+        background: #ffc107;
+        color: #856404;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        animation: bounce 1s infinite;
+    }
+
+    /* Spam indicator for labels */
+    .spam-indicator {
+        color: #ffc107;
+        font-size: 16px;
+        margin-left: 5px;
+        animation: blink 1.5s infinite;
+    }
+
+    /* Spam field styling */
+    .spam-field {
+        border-color: #ffc107 !important;
+        background-color: #fffbf0 !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+    }
+
+    /* Animations */
+    @@keyframes pulseWarning {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-5px); }
+        60% { transform: translateY(-3px); }
+    }
+
+    @@keyframes blink {
+        0%, 50% { opacity: 1; }
+        25%, 75% { opacity: 0.5; }
+    }
+
+    /* Existing gender styles */
+    .gender-group {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .custom-radio {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .custom-radio input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .custom-radio .radio-mark {
+        height: 18px;
+        width: 18px;
+        background-color: #eee;
+        border-radius: 50%;
+        border: 2px solid #999;
+        position: relative;
+    }
+
+    .custom-radio .radio-mark::after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    .custom-radio input[type="radio"]:checked~.radio-mark {
+        background-color: #C0392B;
+        border-color: #C0392B;
+    }
+
+    .custom-radio input[type="radio"]:checked~.radio-mark::after {
+        display: block;
+    }
+
+    .custom-radio .radio-mark::after {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: white;
+    }
+
+    .custom-radio .radio-label {
+        margin-left: 8px;
+    }
+</style>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const profileImage = document.getElementById('profileImage');
+
+    imageInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                profileImage.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // *** SPAM WARNING JAVASCRIPT ***
+    @if (Model.Customer.cus_status == 1)
+    {
+        <text>
+        // Show spam notification on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Optional: Show additional spam warning modal
+            console.log('⚠️ Tài khoản này bị đánh dấu spam');
+            
+            // Add spam warning to form submission
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                if (!confirm('Bạn có chắc chắn muốn cập nhật thông tin? Tài khoản hiện đang bị đánh dấu spam.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+        </text>
+    }
+</script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="/client/js/locationPicker.js" asp-append-version="true"></script>

@@ -1,0 +1,41 @@
+﻿@model Core.Models.ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DineGO Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN (nếu cần icon) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-indigo-700 text-white px-4">
+        <div class="text-6xl font-extrabold mb-4 drop-shadow-lg">Oops!</div>
+        <div class="text-2xl font-semibold mb-2 text-indigo-100">Đã xảy ra lỗi. Chúng tôi xin lỗi vì sự bất tiện này.</div>
+
+        @if (Model.ShowRequestId)
+        {
+            <p class="mb-2 text-indigo-200"><strong>Mã yêu cầu:</strong> <code class="bg-indigo-800 px-2 py-1 rounded">@Model.RequestId</code></p>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="bg-red-600 bg-opacity-80 text-white rounded p-4 mt-3 shadow-lg w-full max-w-lg">
+                <h5 class="font-bold mb-1">Chi tiết lỗi</h5>
+                <p>@Model.ErrorMessage</p>
+            </div>
+        }
+
+        <div class="mt-6 flex gap-4">
+            <a href="/" class="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded shadow transition">Về trang chủ</a>
+            <a href="javascript:history.back()" class="px-6 py-3 bg-indigo-300 hover:bg-indigo-200 text-indigo-900 font-bold rounded shadow transition">Quay lại</a>
+        </div>
+    </div>
+</body>
+</html>

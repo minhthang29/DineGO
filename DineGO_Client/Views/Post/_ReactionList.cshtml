@@ -1,0 +1,25 @@
+@model List<Core.Models.Client.Custom.ReactionViewModel>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="text-muted text-center">Chưa có ai tương tác</div>
+}
+else
+{
+    foreach (var r in Model)
+    {
+        <div class="d-flex align-items-center mb-2">
+            <img src="@($"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_{r.CustomerImage}")"
+                 class="rounded-circle me-2" style="width:36px;height:36px;object-fit:cover" />
+            <div>@r.CustomerName</div>
+            <div class="ms-auto">@GetReactionIcon(r.EmotionType)</div>
+        </div>
+    }
+}
+
+@functions {
+    string GetReactionIcon(int type) => type switch
+    {
+        1 => "👍", 2 => "❤️", 3 => "😆", 4 => "😮", 5 => "😢", 6 => "😡", _ => ""
+    };
+}

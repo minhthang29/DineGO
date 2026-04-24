@@ -1,0 +1,104 @@
+@model Core.Models.Client.Custom.AdRegistrationRequestDto
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Thuê quảng cáo";
+}
+
+<div class="col-md-12">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Thuê quảng cáo cho Slot </h4>
+            <div>
+                <a href="@Url.Action("AvailableSlots", "RestaurantOwner")" class="btn btn-light btn-sm me-2">
+                    <i class="bi bi-plus-circle"></i> Slot có thể thuê
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <form asp-action="RegisterAdSubmit" asp-controller="RestaurantOwner" 
+                          enctype="multipart/form-data" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" asp-for="slot_id" />
+                        <input type="hidden" asp-for="res_owner_id" />
+
+                        <!-- Link -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-danger">Liên kết quảng cáo</label>
+                            <input asp-for="ad_link_url" class="form-control border-danger rounded-3" 
+                                   placeholder="https://..." required />
+                        </div>
+
+                        <!-- Ngày thuê -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-danger">Ngày bắt đầu</label>
+                                <input asp-for="start_date" type="date" 
+                                       class="form-control border-danger rounded-3" 
+                                       value="@DateTime.Now.ToString("yyyy-MM-dd")" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-danger">Thời hạn thuê</label>
+                                <select id="duration" name="duration" class="form-select border-danger rounded-3" onchange="calcEndDate()">
+                                    <option value="1">1 ngày</option>
+                                    <option value="7">7 ngày</option>
+                                    <option value="14">14 ngày</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-danger">Ngày kết thúc</label>
+                            <input asp-for="end_date" type="date" id="endDate" 
+                                   class="form-control border-danger rounded-3" readonly />
+                        </div>
+
+                        <!-- Upload ảnh -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-danger">Ảnh quảng cáo</label>
+                            <input type="file" name="imageFile" accept="image/png, image/jpeg" 
+                                   class="form-control border-danger rounded-3" required />
+                            <small class="text-muted">Chỉ cho phép 1 ảnh (PNG hoặc JPG)</small>
+                        </div>
+
+                        <!-- Giá -->
+                        <div class="alert alert-light text-center border-danger mt-4">
+                            <span class="fw-bold">Tổng giá: </span>
+                            <span id="price" class="text-danger fw-bold">0 VND</span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a asp-action="AvailableSlots" class="btn btn-outline-secondary rounded-3 px-4">
+                                Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-danger rounded-3 px-4">
+                                Xác nhận thuê
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function calcEndDate() {
+            const start = new Date(document.querySelector("[name='start_date']").value);
+            const days = parseInt(document.getElementById("duration").value);
+            const end = new Date(start);
+            end.setDate(start.getDate() + days);
+
+            document.getElementById("endDate").value = end.toISOString().slice(0, 10);
+
+            // Tính giá = slot_price * days
+            const basePrice = @ViewBag.SlotPrice;
+            const total = basePrice * days;
+            document.getElementById("price").textContent = total.toLocaleString("vi-VN") + " VND";
+        }
+
+        document.addEventListener("DOMContentLoaded", calcEndDate);
+    </script>
+}

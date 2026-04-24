@@ -1,0 +1,286 @@
+@model Core.Models.Client.DashboardResownerViewModel
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Thống kê hệ thống";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+<style>
+    .dashboard-card {
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10), 0 1.5px 4px 0 rgba(0,0,0,0.08);
+        transition: transform 0.15s, box-shadow 0.15s;
+        min-height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-weight: 500;
+        background: linear-gradient(135deg, #fff 60%, #f8f9fa 100%);
+        position: relative;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: 0 8px 32px 0 rgba(0,0,0,0.15), 0 2px 8px 0 rgba(0,0,0,0.10);
+    }
+    .dashboard-icon {
+        font-size: 2.2rem;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    .dashboard-title {
+        font-size: 1.05rem;
+        color: #555;
+        margin-bottom: 0.2rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .dashboard-value {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 0.1rem;
+    }
+    .dashboard-card.bg-gradient-blue {
+        background: linear-gradient(135deg, #2196f3 60%, #21cbf3 100%);
+        color: #fff;
+    }
+    .dashboard-card.bg-gradient-green {
+        background: linear-gradient(135deg, #43e97b 60%, #38f9d7 100%);
+        color: #fff;
+    }
+    .dashboard-card.bg-gradient-cyan {
+        background: linear-gradient(135deg, #00c6fb 60%, #005bea 100%);
+        color: #fff;
+    }
+    .dashboard-card.bg-gradient-yellow {
+        background: linear-gradient(135deg, #f7971e 60%, #ffd200 100%);
+        color: #fff;
+    }
+    .dashboard-card.bg-gradient-gray {
+        background: linear-gradient(135deg, #757f9a 60%, #d7dde8 100%);
+        color: #fff;
+    }
+    .dashboard-card.bg-gradient-dark {
+        background: linear-gradient(135deg, #232526 60%, #414345 100%);
+        color: #fff;
+    }
+    .dashboard-card.bg-gradient-red {
+        background: linear-gradient(135deg, #f85032 60%, #e73827 100%);
+        color: #fff;
+    }
+    .dashboard-card.bg-gradient-violet {
+        background: linear-gradient(135deg, #8f94fb 60%, #4e54c8 100%);
+        color: #fff;
+    }
+    .dashboard-card .dashboard-sub {
+        font-size: 1rem;
+        color: #fff;
+        opacity: 0.85;
+        font-weight: 400;
+    }
+    @@media (max-width: 767px) {
+        .dashboard-card { font-size: 1rem; min-height: 110px; }
+        .dashboard-value { font-size: 1.3rem; }
+    }
+</style>
+<div class="container mt-4">
+    <h2 class="mb-4 text-center text-primary">Thống kê tổng quan hệ thống</h2>
+    <!-- Dashboard cards: số liệu tổng quan -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-blue">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-store"></i></span>
+                    <div class="dashboard-title">Tổng số nhà hàng</div>
+                    <div class="dashboard-value">@Model.TotalRestaurants</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-green">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-coins"></i></span>
+                    <div class="dashboard-title">Tổng doanh thu</div>
+                    <div class="dashboard-value">@String.Format("{0:N0}", Model.TotalRevenue) <span style="font-size:1.1rem;">VNĐ</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-cyan">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-receipt"></i></span>
+                    <div class="dashboard-title">Tổng số đơn hàng</div>
+                    <div class="dashboard-value">@Model.TotalOrders</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-yellow">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-utensils"></i></span>
+                    <div class="dashboard-title">Tổng lượt đặt bàn/đặt món</div>
+                    <div class="dashboard-value">@Model.TotalOrders</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4 g-3">
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-gray">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-users"></i></span>
+                    <div class="dashboard-title">Tổng số khách hàng</div>
+                    <div class="dashboard-value">@Model.TotalCustomers</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-green">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-check-circle"></i></span>
+                    <div class="dashboard-title">Giao dịch thành công</div>
+                    <div class="dashboard-value">@Model.SuccessTransactions</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-red">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-times-circle"></i></span>
+                    <div class="dashboard-title">Giao dịch thất bại</div>
+                    <div class="dashboard-value">@Model.FailedTransactions</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-dark">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-id-card"></i></span>
+                    <div class="dashboard-title">Giấy phép đã xác thực/chưa</div>
+                    <div class="dashboard-value text-white">@Model.VerifiedLicenses <span class="dashboard-sub">/ @Model.UnverifiedLicenses</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4 g-3">
+        <div class="col-md-3 col-6">
+            <div class="dashboard-card bg-gradient-violet">
+                <div class="w-100">
+                    <span class="dashboard-icon"><i class="fas fa-star"></i></span>
+                    <div class="dashboard-title">Sao trung bình</div>
+                    <div class="dashboard-value">@Model.AverageRating.ToString("0.0") <span style="color:#ffd700;">★</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart section giữ nguyên -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="text-center">Doanh thu theo tháng</h5>
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="text-center">Số đơn hàng theo tháng</h5>
+                <canvas id="orderChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="text-center">Top 5 nhà hàng doanh thu cao nhất</h5>
+                <canvas id="topRestaurantChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="text-center">Top 5 món ăn bán chạy nhất</h5>
+                <canvas id="topFoodChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Data động lấy từ Model
+    const months = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Months));
+    const revenueData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.RevenueData));
+    const orderData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.OrderData));
+    const topRestaurants = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopRestaurants));
+    const topRestaurantRevenue = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopRestaurantRevenue));
+    const topFoods = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopFoods));
+    const topFoodOrders = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopFoodOrders));
+
+    // Chart.js code giữ nguyên
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: revenueData,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13,110,253,0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true } }
+        }
+    });
+    new Chart(document.getElementById('orderChart'), {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Số đơn hàng',
+                data: orderData,
+                backgroundColor: '#dc3545'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+    new Chart(document.getElementById('topRestaurantChart'), {
+        type: 'bar',
+        data: {
+            labels: topRestaurants,
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: topRestaurantRevenue,
+                backgroundColor: '#198754'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+    new Chart(document.getElementById('topFoodChart'), {
+        type: 'bar',
+        data: {
+            labels: topFoods,
+            datasets: [{
+                label: 'Số lượng bán',
+                data: topFoodOrders,
+                backgroundColor: '#ffc107'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+}

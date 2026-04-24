@@ -1,0 +1,126 @@
+@model Core.Models.Client.Custom.CustomProfileViewModel
+
+@{
+    Layout = "../../Views/Shared/_Profile.cshtml";
+    ViewData["Title"] = "Voucher đã sở hữu";
+
+    var owned = Model.Data["VoucherOwned"] as Core.Models.Client.Custom.VoucherOwnedListResponse;
+}
+
+<div class="col-md-9">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Voucher của bạn</h4>
+            <div>
+                <a asp-action="Redeem" class="btn btn-light btn-sm me-2">
+                    <i class="bi bi-arrow-repeat"></i> Đổi điểm
+                </a>
+                <a asp-action="History" class="btn btn-light btn-sm">
+                    <i class="bi bi-clock-history"></i> Lịch sử
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+
+            <!-- Số dư điểm -->
+            <div class="card shadow-sm mb-4 text-center border-danger">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">Số dư điểm của bạn</h5>
+                    <p class="display-6 text-danger fw-bold">@owned?.CustomerBalance</p>
+                </div>
+            </div>
+
+            @if (owned?.Vouchers == null || !owned.Vouchers.Any())
+            {
+                <div class="alert alert-danger">❗ Bạn chưa có voucher nào.</div>
+            }
+            else
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3 text-danger">Danh sách voucher</h5>
+                        <div class="d-flex flex-row flex-nowrap overflow-auto pb-2" style="gap: 1rem;">
+                            @foreach (var v in owned.Vouchers)
+                            {
+                                <div class="card shadow-sm border-0" style="min-width: 260px; flex: 0 0 auto;">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-danger">@v.VoucherCode</h5>
+
+                                        <p>
+                                            <strong>Giảm:</strong>
+                                            @if (v.VoucherType == 0)
+                                            {
+                                                @($"{(int)v.VoucherDiscount}%")
+                                            }
+                                            else
+                                            {
+                                                @($"{v.VoucherDiscount:N0} VND")
+                                            }
+                                        </p>
+
+                                        <p><strong>HSD:</strong>@v.VoucherStartDate.ToString("dd/MM/yyyy") - @v.VoucherEndDate.ToString("dd/MM/yyyy")</p>
+
+                                        <p><strong>Số lượng còn:</strong> @v.Quantity</p>
+
+                                        @* Kiểm tra khả dụng *@
+                                        @if (!v.VoucherIsDeleted && v.VoucherIsActive && v.VoucherEndDate >= DateTime.Now)
+                                        {
+                                            <!-- Nút tặng -->
+                                            <button type="button" class="btn btn-danger w-100 toggle-gift" data-voucher="@v.VoucherId">
+                                                Tặng voucher
+                                            </button>
+
+                                            <div class="gift-form mt-3 d-none">
+                                                <form asp-action="GiftVoucher" method="post">
+                                                    <input type="hidden" name="VoucherId" value="@v.VoucherId" />
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Chọn bạn để tặng:</label>
+                                                        <select name="ReceiverId" class="form-select">
+                                                            @foreach (var f in v.Friends)
+                                                            {
+                                                                <option value="@f.CusId">@f.CusName</option>
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-outline-danger w-100">Xác nhận tặng</button>
+                                                </form>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <!-- Voucher không khả dụng -->
+                                            <div class="card border-danger bg-light text-center shadow-sm p-3">
+                                                <div class="card-body">
+                                                    <h6 class="text-danger mb-2">
+                                                    <i class="bi bi-x-circle-fill me-1"></i> Voucher không khả dụng
+                                                    </h6>
+                                                    <form asp-action="DeleteVoucher" method="post" class="d-inline">
+                                                        <input type="hidden" name="voucherId" value="@v.VoucherId" />
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="bi bi-trash3"></i> Xóa khỏi danh sách
+                                                            </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".toggle-gift").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const form = btn.closest(".card-body").querySelector(".gift-form");
+                form.classList.toggle("d-none");
+            });
+        });
+    </script>
+}

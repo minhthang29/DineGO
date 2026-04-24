@@ -1,0 +1,112 @@
+@model Core.Models.Client.Custom.FoodWithMenuViewModel
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+    var food = Model.Foods.FirstOrDefault();
+}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 550px;">
+    <div class="card shadow-lg p-4 rounded-4" style="width: 100%; max-width: 700px; background-color: #fff;">
+        <h3 class="text-center fw-bold text-danger mb-4">
+            ✏️ Cập nhật món ăn: <span class="text-dark">@food?.food_name</span>
+        </h3>
+
+        <form asp-action="Edit" enctype="multipart/form-data" id="foodEditForm">
+            <input type="hidden" asp-for="Menu.menu_id" />
+            <input type="hidden" name="Foods[0].food_id" value="@food?.food_id" />
+            <input type="hidden" name="Foods[0].menu_id" value="@food?.menu_id" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Tên món</label>
+                <input class="form-control rounded-3 border-danger" name="Foods[0].food_name" value="@food?.food_name"
+                    required id="foodName" placeholder="Nhập tên món..." />
+                <span class="text-danger" id="foodNameError"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Mô tả</label>
+                <textarea class="form-control rounded-3 border-danger" name="Foods[0].food_description"
+                    id="foodDescription" rows="3" required>@food?.food_description</textarea>
+                <span class="text-danger" id="foodDescriptionError"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Tag (giúp món ăn được đề xuất tốt hơn)</label>
+                <!-- Trường input ẩn để lưu tag, dùng để submit -->
+                <input type="hidden" name="Foods[0].food_tag" id="tagSelected" value="@food?.food_tag" />
+                <div class="border rounded-3 p-3" style="min-height: 50px; background-color: #f8f9fa;">
+                    <div id="selectedTags" class="d-flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+
+            @if (ViewBag.TagCategories != null)
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-danger">Chọn thêm tag</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var tag in ViewBag.TagCategories as List<string>)
+                        {
+                            <span class="badge rounded-pill bg-secondary text-white px-3 py-2" style="cursor:pointer"
+                                onclick="addTag('@tag')">@tag</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Giá (VNĐ)</label>
+                <input class="form-control rounded-3 border-danger" type="number" name="Foods[0].food_price"
+                    value="@food?.food_price" required id="foodPrice" min="0" max="2000000" placeholder="Ví dụ: 45000" />
+                <span class="text-danger" id="foodPriceError"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Thời gian chế biến (phút)</label>
+                <input class="form-control rounded-3 border-danger" type="number" name="Foods[0].food_prep_time"
+                    value="@food?.food_prep_time" id="foodPrepTime" min="1" max="20000" placeholder="Ví dụ: 15" required/>
+                <small class="text-muted">Nhập thời gian chế biến món ăn (tính bằng phút)</small>
+            </div>
+
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Trạng thái</label>
+                <select name="Foods[0].food_status" class="form-select rounded-3 border-danger" required
+                    id="foodStatus">
+                    <option value="" selected="@(food?.food_status == null ? "selected" : null)">-- Chọn trạng thái --
+                    </option>
+                    <option value="1" selected="@(food?.food_status == 1 ? "selected" : null)">Đang bán</option>
+                    <option value="0" selected="@(food?.food_status == 0 ? "selected" : null)">Hết món</option>
+                </select>
+
+                <span class="text-danger" id="foodStatusError"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Ảnh hiện tại</label>
+                <div>
+                    @foreach (var img in food.food_images)
+                    {
+                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/foods/thumb_@img"
+                            style="height: 100px;" class="img-thumbnail me-1 mb-1" />
+                    }
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold text-danger">Ảnh mới</label>
+                <input type="file" name="imageFiles" class="form-control rounded-3 border-danger" multiple
+                    id="foodImage" />
+                <span class="text-danger" id="foodImageError"></span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="ManageByMenu" asp-route-menuId="@Model.Menu.menu_id"
+                    class="btn btn-outline-secondary rounded-3 px-4">Quay lại</a>
+                <button type="submit" class="btn btn-danger rounded-3 px-4">Cập nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="/client/js/food.js" asp-append-version="true"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+<script>
+    window.addEventListener("load", renderSelectedTags);
+</script>

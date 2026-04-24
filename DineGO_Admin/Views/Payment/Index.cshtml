@@ -1,0 +1,57 @@
+@model IEnumerable<Core.Models.Payment>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Danh sách thanh toán";
+}
+
+<h2 class="text-2xl font-bold mb-6">Danh sách thanh toán</h2>
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Khách hàng</th>
+                <th class="px-6 py-3 text-left">Giá</th>
+                <th class="px-6 py-3 text-left">Ngày tạo</th>
+                <th class="px-6 py-3 text-left">Trạng thái</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @foreach (var payment in Model)
+            {
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <td class="px-6 py-4">@payment.pay_id</td>
+                    <td class="px-6 py-4">@payment.cus_id</td>
+                    <td class="px-6 py-4">@payment.pay_price.ToString("N0")</td>
+                    <td class="px-6 py-4">@payment.pay_created_date.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="px-6 py-4">
+                        @{
+                            string statusText = payment.pay_status switch
+                            {
+                                0 => "Thất bại",
+                                1 => "Đã thanh toán",
+                                _ => "Không xác định"
+                            };
+                            string statusColor = payment.pay_status switch
+                            {
+                                0 => "bg-red-100 text-red-800 border-red-300",
+                                1 => "bg-green-100 text-green-800 border-green-300",
+                                _ => "bg-gray-100 text-gray-800 border-gray-300"
+                            };
+                        }
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold border @statusColor">@statusText</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <a href="@Url.Action("PrintInvoice", "Payment", new { id = payment.pay_id })"
+                        target="_blank"
+                        class="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                            <i class="fas fa-print"></i> In hóa đơn
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

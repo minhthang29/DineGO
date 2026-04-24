@@ -1,0 +1,60 @@
+<div class="modal fade" id="detailTableModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content d-flex flex-column">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Cập nhật bàn</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+
+      <!-- Body -->
+      @Html.Partial("_DeleteTable")
+      <div class="modal-body overflow-auto" style="flex: 1;">
+        <input type="hidden" id="detailTableId" />
+
+        <div class="row">
+          <div class="col-md-8 mb-3">
+            <label class="form-label fw-bold">Tên bàn</label>
+            <input type="text" class="form-control" id="detailTableLabel" placeholder="Nhập tên bàn">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Số chỗ</label>
+            <input type="number" class="form-control" id="detailTableSeat" min="1">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Ảnh bàn</label>
+          <div class="common-image-upload-multiple">
+            <input type="file" id="detail_multi_input" accept="image/*" multiple style="display: none;">
+            <div id="detail_multi_previewBox" class="image-upload-wrapper">
+              <div id="detail_multi_addBtn" class="add-image-box">
+                <i class="bi bi-file-image fs-2"></i>
+                <span class="ms-2">Thêm ảnh</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer border-0 px-3">
+        <div class="row w-100">
+          <div class="col-6 pe-1">
+            <button class="btn btn-danger w-100 btn-table-action" onclick="openDeleteTableModal(
+        document.getElementById('detailTableId').value,
+        document.getElementById('detailTableLabel').value)">
+              <i class="fas fa-trash me-1"></i> Xoá
+            </button>
+          </div>
+          <div class="col-6 ps-1">
+            <button class="btn btn-success w-100 btn-table-action" onclick="confirmUpdateTable()">
+              <i class="fas fa-save me-1"></i> Cập nhật
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

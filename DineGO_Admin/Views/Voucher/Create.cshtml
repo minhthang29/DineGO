@@ -1,0 +1,158 @@
+@model Core.Models.Voucher
+@using Core.Models
+
+@{
+    ViewData["Title"] = "Thêm Voucher";
+    Layout = "../../Views/Shared/_Layout.cshtml";
+}
+
+<div class="max-w-xl mx-auto mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+    <h2 class="text-2xl font-bold text-center mb-6">Thêm Voucher Mới</h2>
+    <form asp-action="Create" method="post" class="space-y-5">
+        <div>
+            <label class="block font-semibold mb-1">Mã voucher</label>
+            <input name="voucher_code" class="text-black w-full border rounded px-3 py-2" required />
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Giá trị giảm</label>
+            <input name="voucher_discount" type="number" step="0.01"
+                   class="text-black w-full border rounded px-3 py-2" required />
+        </div>
+
+        <!-- ✅ Trường số tiền giảm tối đa -->
+        <div id="cap_amount_field" class="hidden">
+            <label class="block font-semibold mb-1">Số tiền giảm tối đa (VND)</label>
+            <input name="voucher_cap_amount" type="number" min="0"
+                   class="text-black w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Loại giảm giá</label>
+            <select name="voucher_type" id="voucher_type"
+                    class="text-black w-full border rounded px-3 py-2">
+                <option value="0">Phần trăm (%)</option>
+                <option value="1">Số tiền cố định</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Số lượng</label>
+            <input name="voucher_stock" type="number" min="1"
+                   class="text-black w-full border rounded px-3 py-2" />
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Ngày bắt đầu</label>
+            <input name="voucher_start_date" type="date"
+                   class="text-black w-full border rounded px-3 py-2" required />
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Ngày hết hạn</label>
+            <input name="voucher_end_date" type="date"
+                   class="text-black w-full border rounded px-3 py-2" required />
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Trạng thái</label>
+            <select name="voucher_is_active" class="text-black w-full border rounded px-3 py-2">
+                <option value="true">Kích hoạt</option>
+                <option value="false">Không kích hoạt</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Áp dụng cho</label>
+            <select name="voucher_apply_type" id="voucher_apply_type"
+                    class="text-black w-full border rounded px-3 py-2">
+                <option value="0">Tất cả</option>
+                <option value="1">Khách hàng cụ thể</option>
+                <option value="2">Khác</option>
+            </select>
+        </div>
+
+        <div id="customer_select" class="hidden mt-3">
+            <label class="block font-semibold mb-1">Chọn khách hàng</label>
+            <select name="cusId" class="text-black w-full border rounded px-3 py-2">
+                @if (ViewBag.Customers != null)
+                {
+                    foreach (var c in (List<Customer>)ViewBag.Customers)
+                    {
+                        <option value="@c.cus_id">@c.cus_name (@c.cus_email)</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Điểm yêu cầu</label>
+            <input name="required_points" type="number" min="0"
+                   class="text-black w-full border rounded px-3 py-2" />
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button type="submit"
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded transition">
+                Thêm
+            </button>
+            <a href="@Url.Action("Index", "Voucher")"
+               class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded text-center transition">
+                Hủy
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        const applyType = document.getElementById("voucher_apply_type");
+        const customerSelect = document.getElementById("customer_select");
+        const codeInput = document.querySelector("input[name='voucher_code']");
+        const discountInput = document.querySelector("input[name='voucher_discount']");
+        const typeSelect = document.getElementById("voucher_type");
+        const pointsInput = document.querySelector("input[name='required_points']");
+        const capAmountField = document.getElementById("cap_amount_field");
+
+        // 👉 Toggle chọn customer
+        applyType.addEventListener("change", function () {
+            if (this.value == "1") {
+                customerSelect.classList.remove("hidden");
+            } else {
+                customerSelect.classList.add("hidden");
+            }
+        });
+
+        // 👉 Toggle cap field theo loại giảm giá
+        function toggleCapField() {
+            if (typeSelect.value === "0") {
+                capAmountField.classList.remove("hidden");
+            } else {
+                capAmountField.classList.add("hidden");
+            }
+        }
+        typeSelect.addEventListener("change", toggleCapField);
+        toggleCapField();
+
+        // 👉 Mã voucher auto uppercase khi nhập
+        codeInput.addEventListener("input", function () {
+            this.value = this.value.toUpperCase();
+        });
+
+        // 👉 Auto set required_points
+        function updatePoints() {
+            let discount = parseFloat(discountInput.value) || 0;
+            let type = parseInt(typeSelect.value);
+            let points = 0;
+
+            if (type === 0) {
+                points = Math.round(discount * 100);
+            } else {
+                points = Math.round(discount * 0.01);
+            }
+            pointsInput.value = points;
+        }
+        discountInput.addEventListener("input", updatePoints);
+        typeSelect.addEventListener("change", updatePoints);
+    </script>
+}

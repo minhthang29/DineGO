@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Liên hệ";
+}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-12">
+            <div class="card shadow-sm p-4">
+                <h2 class="fw-bold mb-3 text-primary">Liên hệ DineGO</h2>
+                <p class="mb-4">Vui lòng gửi phản hồi hoặc yêu cầu hỗ trợ qua form bên dưới:</p>
+                <form asp-action="Create" asp-controller="Contact" method="post">
+                    <div class="mb-3">
+                        <label for="contact_name" class="form-label">Họ tên</label>
+                        <input type="text" class="form-control" id="contact_name" name="contact_name" maxlength="100" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="contact_email" name="contact_email" maxlength="150" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_subject" class="form-label">Tiêu đề</label>
+                        <input type="text" class="form-control" id="contact_subject" name="contact_subject" maxlength="200" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_message" class="form-label">Nội dung liên hệ</label>
+                        <textarea class="form-control" id="contact_message" name="contact_message" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary px-4">Gửi liên hệ</button>
+                </form>
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger mt-3">@TempData["ErrorMessage"]</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

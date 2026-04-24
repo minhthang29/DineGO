@@ -1,0 +1,74 @@
+@model List<Core.Models.TableArea>
+@{
+    ViewData["Title"] = "Danh sách khu vực";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+}
+@await Html.PartialAsync("_AreaModal")
+@Html.Partial("_PopupForm")
+<div class="sidebar">
+    <div class="flex-grow-1 p-4 bg-white">
+        <h2 class="fw-bold text-danger mb-4">Cài đặt khu vực</h2>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div class="menu-item open-dynamic-modal btn-danger text-white ms-auto" data-title="Nhập khu vực" data-fields="Name"
+                data-action="CreateArea" data-controller="Table" data-method="POST">
+                <i class="fas fa-plus"></i> Tạo khu vực
+            </div>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">Chưa có khu vực nào được tạo.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover shadow-sm">
+            <thead class="table-danger">
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 40%">Tên khu vực</th>
+                    <th style="width: 20%">Ngày tạo</th>
+                    <th style="width: 20%">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>@Model[i].area_name</td>
+                        <td>
+                            @{
+                                var updated = Model[i].updated_at;
+                                var created = Model[i].created_at;
+                                if (updated == null)
+                                {
+                                    @created.ToString("dd/MM/yyyy HH:mm")
+                                }
+                                else
+                                {
+                                    @updated?.ToString("dd/MM/yyyy HH:mm")
+                                    <span class="badge bg-warning text-dark ms-1">(Đã cập nhật)</span>
+                                }
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary btn-edit-area" data-id="@Model[i].area_id"
+                                data-name="@Model[i].area_name">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger btn-delete-area" data-id="@Model[i].area_id"
+                                data-name="@Model[i].area_name">
+                                <i class="fas fa-trash-alt"></i> Xoá
+                            </button>
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

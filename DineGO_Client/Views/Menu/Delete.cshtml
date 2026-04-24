@@ -1,0 +1,19 @@
+@model Core.Models.Client.Custom.MenuWithRestaurantViewModel
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+}
+
+
+<h3 class="fw-bold text-danger">❌ Xác nhận xoá Menu - @Model.Restaurant.res_name</h3>
+
+<div class="alert alert-warning">
+    Bạn có chắc chắn muốn xoá menu "<strong>@Model.Menu.menu_name</strong>" không?
+</div>
+
+<form asp-action="DeleteConfirmed" asp-route-id="@Model.Menu.menu_id" method="post">
+    <input type="hidden" name="res_id" value="@Model.Menu.res_id" />
+    <button type="submit" class="btn btn-danger">Xoá</button>
+    <a asp-action="ListMenu" asp-route-res_id="@Model.Menu.res_id" class="btn btn-secondary">Huỷ</a>
+</form>

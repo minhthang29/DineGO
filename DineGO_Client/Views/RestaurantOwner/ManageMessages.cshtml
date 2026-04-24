@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Quản lý tin nhắn khách hàng";
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+}
+
+<div class="ro-chat-container">
+<div class="ro-restaurant-sidebar" id="panel-restaurants">
+  <div class="ro-chat-header d-flex justify-content-between align-items-center">
+    <span>Nhà hàng</span>
+
+    <a href="@Url.Action("ChartRestaurant","RestaurantOwner")""
+       class="btn btn-sm btn-light text-dark d-inline-flex align-items-center gap-1">
+      <i class="bi bi-house-door-fill"></i>
+      <span class="d-none d-sm-inline">Trang chủ</span>
+    </a>
+
+  </div>
+  <div id="ro-restaurant-list"></div>
+</div>
+
+  <div class="ro-chat-sidebar active" id="panel-customers">
+    <div class="ro-chat-header">
+      <button class="ro-back d-md-none" id="btn-back-to-restaurants">←</button>
+      <span>Khách</span>
+    </div>
+    <div id="ro-customer-list"></div>
+  </div>
+<div class="ro-chat-box" id="ro-chat-box"> <!-- giữ nguyên id này -->
+  <div class="ro-chat-header">
+    <button class="ro-back d-md-none" id="btn-back-to-customers">←</button>
+    <span id="ro-chat-customer-name">Đang chat</span>
+  </div>
+  <div class="ro-chat-content" id="ro-chat-content"></div>
+  <div class="ro-chat-input">
+    <input id="ro-chat-message-input" placeholder="Nhập tin nhắn..." />
+    <button id="ro-chat-send-btn">Gửi</button>
+  </div>
+</div>
+</div>
+

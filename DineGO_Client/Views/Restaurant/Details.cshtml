@@ -1,0 +1,664 @@
+@model Core.Models.Client.Custom.RestaurantDetailViewModel
+
+<div class="container mt-4" style="margin-top: 30px !important;">
+    <div id="restaurantCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            @if (Model.Restaurant.res_images_json != null && Model.Restaurant.res_images_json.Any())
+            {
+                for (int i = 0; i < Model.Restaurant.res_images_json.Count; i++)
+                {
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/restaurants/full_@Model.Restaurant.res_images_json[i]"
+                            class="d-block w-500" onerror="this.onerror=null;this.src='/common/images/banner.jpg';"
+                            alt="Hình ảnh @(i + 1)">
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="carousel-item active">
+                    <img src="/common/images/banner.jpg" class="d-block w-100" alt="Hình ảnh mặc định">
+                </div>
+            }
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#restaurantCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#restaurantCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+</div>
+
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Cột chứa thông tin nhà hàng (bên trái) -->
+        <div class="col-md-8">
+            <ul class="nav nav-tabs" id="restaurantTabs">
+                <li class="nav-item">
+                    <a class="nav-link-restaurant-details active" href="#section-information">Thông tin</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-restaurant-details" href="#summary">Tóm tắt</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-restaurant-details" href="#pricing">Thực đơn</a>
+                </li>
+                 <li class="nav-item"></li>
+                    <a class="nav-link-restaurant-details" href="#rating">Đánh giá</a>
+                </li>
+            </ul>
+
+
+            <div class="tab-content mt-3">
+                <!-- Tab: Thông tin -->
+                <div class="mt-4" id="information">
+                    <div class="col-12 mb-4">
+                        <div class="shadow border rounded-4 p-3 bg-white">
+                            @if (Model.Restaurant.res_is_authorized)
+                            {
+                            <span class="badge bg-primary rounded p-2" title="Đã đăng ký giấy phép kinh doanh"
+                                style="float: right; font-size: 1rem;">
+                                <i class="fa fa-check text-white" ></i>
+                            </span>
+                            }
+                            <h1 class="restaurant-detail-name">
+                                @Model.Restaurant.res_name
+                                
+                            </h1>
+                            <h3 class="restaurant-detail-address">
+                                📍 <strong>Địa chỉ:</strong> @Model.Restaurant.res_address
+                            </h3>
+
+                            <div class="restaurant-detail-info">
+                                @{
+                                    var rate = Model.Restaurant.res_rate ?? 0;
+                                    int fullStars = (int)Math.Floor(rate);
+                                    double rateValue = Convert.ToDouble(rate);
+                                    bool hasHalfStar = (rateValue - fullStars) >= 0.5;
+                                    int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+                                    var starHtml = new System.Text.StringBuilder();
+                                    for (int i = 0; i < fullStars; i++) { starHtml.Append("★"); }
+                                    if (hasHalfStar) { starHtml.Append("⯨"); }
+                                    for (int i = 0; i < emptyStars; i++) { starHtml.Append("☆"); }
+                                }
+                                <!-- Chủ nhà hàng (giao diện tĩnh) -->
+                                <div
+                                    class="d-flex justify-content-between align-items-center mt-3 p-2 border rounded-3 shadow-sm bg-light">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/avatars/default_owner.jpg"
+                                            alt="Avatar chủ nhà hàng" class="rounded-circle shadow-sm"
+                                            style="width: 50px; height: 50px; object-fit: cover;"
+                                            onerror="this.onerror=null;this.src='/common/images/banner.jpg';" />
+                                        <span class="fw-semibold fs-6">@ViewBag.ResOwnerName</span>
+                                    </div>
+
+                                    @if (Model.CurrentCustomerId.HasValue)
+{
+    <button id="follow-btn" class="btn btn-sm btn-outline-danger ms-3">
+        <i class="fas fa-plus text-purple me-1"></i> <span id="follow-text">Theo dõi</span>
+    </button>
+}
+else
+{
+    <span class="text-muted ms-3 fst-italic">Vui lòng đăng nhập để theo dõi</span>
+}
+
+                                </div>
+                                <br>
+
+                                <div class="justify-content-center align-items-center mt-2">
+                                    <span class="rating text-warning">
+                                        🎖️ <strong>Đánh giá:</strong> @Html.Raw(starHtml.ToString())
+                                        <span class="text-warning">(@Model.Restaurant.res_rate_count Đánh giá)</span>
+                                    </span>
+
+                                    <span class="restaurant-detail-fee text-danger fw-semibold">
+                                        Phí đặt cọc: @string.Format("{0:N0}", Model.Restaurant.res_reservation_fee) VND
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="restaurant-detail-content mt-3">
+                                📞 <strong>Số điện thoại:</strong> @Model.Restaurant.res_phone
+                            </p>
+
+                            <p class="restaurant-detail-content mt-3">
+                                ✉️ <strong>Email:</strong> @Model.Restaurant.res_email
+                            </p>
+                        <p class="restaurant-detail-content mt-3">
+    ⏰ <strong>Giờ hoạt động:</strong> 
+    @(Model.Restaurant.res_open_time?.ToString(@"hh\:mm") ?? "Chưa cập nhật")
+    - 
+    @(Model.Restaurant.res_close_time?.ToString(@"hh\:mm") ?? "Chưa cập nhật")
+</p>
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Tab: Tóm tắt -->
+                <div class="mt-5" id="summary">
+                    <div class="col-12 mb-4">
+                        <div class="shadow border rounded-4 p-3 bg-white">
+                            <h4 class="fw-bold text-danger mb-3">Tóm tắt @Model.Restaurant.res_name</h4>
+                            <p class="restaurant-detail-content mb-0">
+                                @Model.Restaurant.res_description
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Tab: Thực đơn -->
+                <div class="mt-5" id="pricing">
+                    <div class="col-12 mb-4">
+                        <div class="shadow border rounded-4 p-3 bg-white">
+                            <h4 class="fw-bold text-danger mb-3">Thực đơn</h4>
+
+                            @foreach (var item in Model.MenusWithFoods)
+                            {
+                                <div class="shadow rounded-4 border bg-light p-3 mb-4">
+                                    <div class="row">
+                                        <!-- Slide ảnh menu (bên trái) -->
+                                        <div class="col-md-4 mb-4">
+                                            <div class="border rounded-4 shadow-sm">
+                                                <div id="menuCarousel-@item.Menu.menu_id" class="carousel slide"
+                                                    data-bs-ride="carousel">
+                                                    <div class="carousel-inner">
+                                                        @for (int i = 0; i < item.Menu.menu_images.Count; i++)
+                                                        {
+                                                            <div class="carousel-item @(i == 0 ? "active" : "")">
+                                                                <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/menus/thumb_@item.Menu.menu_images[i]"
+                                                                    class="d-block w-100 h-70 rounded cursor-pointer"
+                                                                    style="object-fit: cover;" alt="Ảnh @(i + 1)"
+                                                                    onclick="showFullImage('https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/menus/full_@item.Menu.menu_images[i]')"
+                                                                    onerror="this.onerror=null;this.src='/common/images/banner.jpg';" />
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    @if (item.Menu.menu_images.Count > 1)
+                                                    {
+                                                        <button class="carousel-control-prev" type="button"
+                                                            data-bs-target="#menuCarousel-@item.Menu.menu_id"
+                                                            data-bs-slide="prev">
+                                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                        </button>
+                                                        <button class="carousel-control-next" type="button"
+                                                            data-bs-target="#menuCarousel-@item.Menu.menu_id"
+                                                            data-bs-slide="next">
+                                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div class="text-center mt-2">
+                                                <h5 class="card-title mb-1">@item.Menu.menu_name</h5>
+                                                <p class="text-muted">@item.Menu.menu_type</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Danh sách món ăn (bên phải) -->
+                                        <div class="col-md-8 mb-4">
+                                            <div id="foodCarousel-@item.Menu.menu_id" class="carousel slide"
+                                                data-bs-ride="carousel">
+                                                <div class="carousel-inner">
+                                                    @{
+                                                        var foodGroups = item.Foods.Select((f, i) => new { f, i })
+                                                        .GroupBy(x => x.i / 6)
+                                                        .ToList();
+                                                        int groupIndex = 0;
+                                                    }
+                                                    @foreach (var group in foodGroups)
+                                                    {
+                                                        <div class="carousel-item @(groupIndex == 0 ? "active" : "")">
+                                                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                                                              @foreach (var foodWrapper in group)
+                                                                {
+                                                                    var food = foodWrapper.f;
+                                                                    <div class="col">
+                                                                        <a asp-controller="Food" asp-action="Details" asp-route-id="@food.food_id"
+                                                                        class="text-decoration-none text-reset">
+                                                                            <div class="card h-100 shadow-sm border rounded-4 overflow-hidden">
+                                                                                @{
+                                                                                    var firstImage = food.food_images.FirstOrDefault();
+                                                                                }
+                                                                                @if (!string.IsNullOrEmpty(firstImage))
+                                                                                {
+                                                                                    <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/foods/thumb_@firstImage"
+                                                                                        class="d-block w-100 food-detail-img"
+                                                                                        style="height:120px; object-fit:cover;"
+                                                                                        alt="@food.food_name"
+                                                                                        onerror="this.onerror=null;this.src='/client/images/res3.jpeg';" />
+                                                                                }
+
+                                                                                <div class="card-body bg-dark text-white text-center p-2">
+                                                                                    <h6 class="fw-bold mb-1">@food.food_name</h6>
+                                                                                    <p class="mb-1 small">@food.food_price.ToString("N0") VND</p>
+
+                                                                                    <div class="d-flex justify-content-center gap-2">
+                                                                                        @if (food.food_status == 1)
+                                                                                        {
+                                                                                              <button type="button"
+                                                                                                        class="btn btn-warning btn-sm px-2 py-1 btn-add-cart"
+                                                                                                        data-food-id="@food.food_id"
+                                                                                                        data-quantity="1">
+                                                                                                    🛒
+                                                                                             </button>
+                                                                                        }
+                                                                                        else if (food.food_status == 0)
+                                                                                        {
+                                                                                            <span class="badge bg-danger align-self-center">Hết món</span>
+                                                                                        }
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                    </div>
+                                                                }
+
+                                                            </div>
+                                                        </div>
+                                                        groupIndex++;
+                                                    }
+                                                </div>
+
+                                                @if (foodGroups.Count > 1)
+                                                {
+                                                    <button class="carousel-control-prev" type="button"
+                                                        data-bs-target="#foodCarousel-@item.Menu.menu_id" data-bs-slide="prev">
+                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                    </button>
+                                                    <button class="carousel-control-next" type="button"
+                                                        data-bs-target="#foodCarousel-@item.Menu.menu_id" data-bs-slide="next">
+                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+<div class="mt-4" id="rating">
+    <div class="shadow border rounded-4 p-3 bg-white">
+        <div class="card-body">
+            <h4 class="fw-bold text-danger mb-4">
+                🎖️ Đánh giá của khách hàng
+            </h4>
+
+            @if (Model.Ratings == null || !Model.Ratings.Any())
+            {
+                <p class="text-muted">Chưa có đánh giá nào cho nhà hàng này.</p>
+            }
+            else
+            {
+                <div style="max-height: 400px; overflow-y: auto;">
+                    @foreach (var rating in Model.Ratings.Take(20))
+                    {
+                        var customer = Model.Customers.FirstOrDefault(c => c.cus_id == rating.cus_id);
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="mb-0 text-muted">
+                                    👤 <i>@(customer?.cus_name ?? "Người dùng")</i>
+                                </p>
+                                <small class="text-muted">
+                                    @rating.rating_date.ToString("dd/MM/yyyy")
+                                </small>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-1">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= rating.rating_value)
+                                    {
+                                        <i class="fa-solid fa-star text-warning me-1"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-star text-warning me-1"></i>
+                                    }
+                                }
+                            </div>
+                            <p class="mb-0 fst-italic">"@rating.rating_comment"</p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    @if (Model.CurrentCustomerId.HasValue)
+    {
+        var myRating = Model.Ratings?.FirstOrDefault(r => r.cus_id == Model.CurrentCustomerId.Value);
+
+        @if (myRating == null)
+        {
+            if (Model.HasCompletedOrder)
+            {
+                <div class="shadow border rounded-4 p-3 bg-white">
+                    <div class="card-body">
+                        <h5 class="text-danger fw-bold mb-3">📝 Gửi đánh giá của bạn</h5>
+                        <form method="post" asp-action="AddOrUpdateRating" asp-controller="Restaurant" id="ratingForm">
+                            <input type="hidden" name="cus_id" value="@Model.CurrentCustomerId.Value" />
+                            <input type="hidden" name="res_id" value="@Model.Restaurant.res_id" />
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Đánh giá trải nghiệm của bạn</label>
+                                <div class="star-rating d-flex gap-1" data-selected="0">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fa-regular fa-star fa-2x text-warning star-icon" data-value="@i"></i>
+                                    }
+                                </div>
+                                <input type="hidden" name="rating_value" value="0" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nội dung đánh giá</label>
+                                <textarea name="rating_comment" class="form-control" required rows="3"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-danger">
+                                🚀 Gửi đánh giá
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning d-flex align-items-center mt-4 rounded-3 shadow-sm">
+                    <i class="fas fa-exclamation-circle me-2 text-danger"></i>
+                    <span><strong>Bạn cần hoàn tất ít nhất 1 đơn hàng tại nhà hàng này để gửi đánh giá.</strong></span>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- ⭐ Đã có đánh giá -->
+            <div class="shadow border rounded-4 p-3 bg-white">
+                <div class="card-body">
+                    <h5 class="text-danger fw-bold mb-3">Đánh giá của bạn</h5>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="d-flex align-items-center mb-1">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= myRating.rating_value)
+                                    {
+                                        <i class="fa-solid fa-star text-warning me-1"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-star text-warning me-1"></i>
+                                    }
+                                }
+                            </div>
+                            <p class="mb-0 fst-italic">"@myRating.rating_comment"</p>
+                        </div>
+                        <button class="btn btn-outline-warning btn-sm ms-3" onclick="toggleEditRating()">
+                            ✏️ Sửa
+                        </button>
+                    </div>
+
+                    <!-- 🔧 Form sửa đánh giá -->
+                    <form method="post" asp-action="AddOrUpdateRating" asp-controller="Restaurant"
+                          class="mt-3 d-none" id="editRatingForm">
+                        <input type="hidden" name="cus_id" value="@Model.CurrentCustomerId.Value" />
+                        <input type="hidden" name="res_id" value="@Model.Restaurant.res_id" />
+                        <input type="hidden" name="rating_id" value="@myRating.rating_id" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Số sao</label>
+                            <div class="star-rating d-flex gap-1" data-selected="@myRating.rating_value">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    var filledClass = i <= myRating.rating_value ? "fa-solid" : "fa-regular";
+                                    <i class="@filledClass fa-star fa-2x text-warning star-icon" data-value="@i"></i>
+                                }
+                            </div>
+                            <input type="hidden" name="rating_value" value="@myRating.rating_value" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nội dung đánh giá</label>
+                            <textarea name="rating_comment" class="form-control" required rows="3">@myRating.rating_comment</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger">💾 Cập nhật đánh giá</button>
+                    </form>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- 🔐 Chưa đăng nhập -->
+        <div class="alert alert-warning d-flex justify-content-between align-items-center mt-4 rounded-3 shadow-sm">
+            <span>🛑 <strong>Vui lòng đăng nhập để gửi đánh giá!</strong></span>
+            <a asp-action="Login" asp-controller="Auth" class="btn btn-outline-danger btn-sm">
+                🔐 Đăng nhập
+            </a>
+        </div>
+    }
+</div>
+
+
+            </div>
+        </div>
+
+        <!-- Cột đặt bàn (bên phải) -->
+        <div class="col-md-4">
+            <div class="booking-container p-3 border rounded shadow bg-white">
+                <h5 class="fw-bold text-center">Đặt chỗ <span class="text-muted">(Để có chỗ trước khi đến)</span></h5>
+                <p class="text-danger text-center fw-bold">Đặt bàn giữ chỗ</p>
+                <a href="@Url.Action("Index", "Reservation", new { id = @Model.Restaurant.res_id })"
+                    class="btn btn-danger w-100 fw-bold">
+                    Đặt chỗ ngay
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal hiển thị ảnh lớn -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-body p-0">
+                <img id="modalImage" src="" class="img-fluid w-100 rounded" alt="Ảnh lớn">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thêm FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="/client/js/imagePreview.js" asp-append-version="true"></script>
+<script>
+document.addEventListener("click", async function (e) {
+    const btn = e.target.closest(".btn-add-cart");
+    if (!btn) return;
+
+    // ⛔ Ngăn click lan ra thẻ <a>
+    e.preventDefault();
+    e.stopPropagation();
+
+    const foodId = btn.dataset.foodId;
+    const quantity = parseInt(btn.dataset.quantity || "1", 10);
+
+    try {
+        const response = await fetch("/Cart/AddJson", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({ foodId, quantity })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            showNotification("Đã thêm món vào giỏ hàng!", "success");
+        } else {
+            showNotification(result.message || "❌ Không thể thêm vào giỏ!, bạn cần đăng nhập trước khi thêm món vào giỏ!", "danger");
+        }
+    } catch (err) {
+        showNotification("❌ Lỗi: " + err.message, "danger");
+    }
+});
+
+function showNotification(message, type = "success") {
+    const container = document.getElementById("notification-container") 
+                      || (() => {
+                          const div = document.createElement("div");
+                          div.id = "notification-container";
+                          div.className = "position-fixed top-0 end-0 m-3";
+                          div.style.zIndex = 1060;
+                          document.body.appendChild(div);
+                          return div;
+                      })();
+
+    container.innerHTML = "";
+
+    const div = document.createElement("div");
+    div.className = `alert alert-${type} d-flex align-items-center shadow-sm border-0 rounded-3`;
+    div.role = "alert";
+
+    let iconHtml = "";
+    if (type === "success") {
+        iconHtml = `<i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>`;
+    } else if (type === "danger") {
+        iconHtml = `<i class="bi bi-x-circle-fill me-2 fs-5 text-danger"></i>`;
+    }
+
+    div.innerHTML = `${iconHtml}<div>${message}</div>`;
+    container.appendChild(div);
+
+    setTimeout(() => {
+        div.classList.add("fade");
+        div.addEventListener("transitionend", () => div.remove());
+    }, 3000);
+}
+
+</script>
+
+<!-- Script để cập nhật giá trị ngày & giờ -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // ⏰ Cập nhật ngày và giờ hiện tại
+        let now = new Date();
+        let today = now.toISOString().split("T")[0];
+        const dateInput = document.getElementById("dateInput");
+        const timeInput = document.getElementById("timeInput");
+        if (dateInput) dateInput.value = today;
+        if (timeInput) {
+            let hours = now.getHours().toString().padStart(2, '0');
+            let minutes = now.getMinutes().toString().padStart(2, '0');
+            timeInput.value = `${hours}:${minutes}`;
+        }
+
+        // ⭐ Xử lý đánh giá sao
+        document.querySelectorAll(".star-rating").forEach(starGroup => {
+            const stars = starGroup.querySelectorAll(".star-icon");
+            const hiddenInput = starGroup.parentElement.querySelector("input[name='rating_value']");
+            const currentValue = parseInt(starGroup.getAttribute("data-selected") || "0");
+
+            stars.forEach((s, i) => s.classList.toggle("filled", i < currentValue));
+            hiddenInput.value = currentValue;
+
+            stars.forEach((star, index) => {
+                star.addEventListener("mouseenter", () => {
+                    for (let i = 0; i <= index; i++) stars[i].classList.add("filled");
+                    for (let i = index + 1; i < stars.length; i++) stars[i].classList.remove("filled");
+                });
+
+                star.addEventListener("mouseleave", () => {
+                    const selectedValue = parseInt(hiddenInput.value || "0");
+                    stars.forEach((s, i) => s.classList.toggle("filled", i < selectedValue));
+                });
+
+                star.addEventListener("click", () => {
+                    const value = parseInt(star.getAttribute("data-value"));
+                    hiddenInput.value = value;
+                    stars.forEach((s, i) => s.classList.toggle("filled", i < value));
+                });
+            });
+        });
+
+        // ✅ Theo dõi / bỏ theo dõi
+        const followBtn = document.getElementById("follow-btn");
+        const followText = document.getElementById("follow-text");
+        const resId = @Model.Restaurant.res_id;
+
+        if (followBtn) {
+            async function checkFollowStatus() {
+                try {
+                    const res = await fetch(`/Restaurant/CheckFollow?res_id=${resId}`);
+                    const data = await res.json();
+                    updateFollowUI(data.isFollowing);
+                } catch (error) {
+                    console.error("Lỗi khi kiểm tra theo dõi:", error);
+                }
+            }
+
+            function updateFollowUI(isFollowing) {
+                if (isFollowing) {
+                    followBtn.classList.remove("btn-outline-danger");
+                    followBtn.classList.add("btn-outline-secondary");
+                    followText.textContent = "Đã theo dõi";
+                } else {
+                    followBtn.classList.remove("btn-outline-secondary");
+                    followBtn.classList.add("btn-outline-danger");
+                    followText.textContent = "Theo dõi";
+                }
+            }
+
+            followBtn.addEventListener("click", async () => {
+                const isFollowed = followText.textContent === "Đã theo dõi";
+                const url = isFollowed
+                    ? `/Restaurant/Unfollow?res_id=${resId}`
+                    : `/Restaurant/Follow?res_id=${resId}`;
+
+                try {
+                    const res = await fetch(url, { method: "POST" });
+                    const data = await res.json();
+                    if (data.success !== undefined) {
+                        updateFollowUI(!isFollowed);
+                    } else {
+                        alert("Lỗi khi xử lý theo dõi.");
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi gửi yêu cầu theo dõi:", error);
+                }
+            });
+
+            checkFollowStatus(); // Gọi khi load
+        }
+
+        // ⏳ Tự đóng alert sau 4 giây
+        setTimeout(() => {
+            const alert = document.querySelector('.alert-dismissible');
+            if (alert) new bootstrap.Alert(alert).close();
+        }, 4000);
+    });
+
+    // 📝 Toggle form chỉnh sửa đánh giá
+    function toggleEditRating() {
+        const form = document.getElementById("editRatingForm");
+        form.classList.toggle("d-none");
+        form.scrollIntoView({ behavior: "smooth" });
+    }
+</script>
+

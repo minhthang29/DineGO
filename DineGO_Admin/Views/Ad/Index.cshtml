@@ -1,0 +1,89 @@
+@model List<Core.Models.Client.Custom.AdSlotDto>
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Quản lý Slot Quảng cáo";
+}
+
+<h2 class="text-2xl font-bold mb-6">Quản lý Slot Quảng cáo</h2>
+
+<div class="mb-4 flex justify-between items-center">
+    <a href="@Url.Action("Edit", "Ad")" class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <i class="fas fa-plus"></i> Thêm Slot
+    </a>
+    <a href="@Url.Action("History", "Ad")"
+       class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 rounded-full shadow-md hover:from-green-600 hover:to-emerald-700">
+        <i class="fas fa-history"></i>
+        <span>Xem lịch sử quảng cáo</span>
+    </a>
+</div>
+
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Tên Slot</th>
+                <th class="px-6 py-3 text-left">Loại</th>
+                <th class="px-6 py-3 text-left">Giá thuê</th>
+                <th class="px-6 py-3 text-left">Trạng thái</th>
+                <th class="px-6 py-3 text-left">Đang thuê</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @foreach (var s in Model)
+            {
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <td class="px-6 py-4">@s.slot_id</td>
+                    <td class="px-6 py-4 font-semibold">@s.slot_name</td>
+                    <td class="px-6 py-4">
+                        @(s.slot_type == 1 ? "Banner" : s.slot_type == 2 ? "Popup" : "Khác")
+                    </td>
+                    <td class="px-6 py-4">@($"{s.slot_price:N0} VND / ngày")</td>
+                    <td class="px-6 py-4">
+                        @if (s.slot_is_active)
+                        {
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Kích hoạt
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+                                Không kích hoạt
+                            </span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        @if (s.occupied)
+                        {
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                Đang thuê
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Trống
+                            </span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex space-x-3 text-lg">
+                            <a href="@Url.Action("Edit", "Ad", new { id = s.slot_id })"
+                               class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="@Url.Action("Delete", "Ad", new { id = s.slot_id })" method="post"
+                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa slot này?');" class="inline">
+                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

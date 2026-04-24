@@ -1,0 +1,136 @@
+﻿@model Core.Models.Client.Custom.CustomProfileViewModel
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DineGO_Client</title>
+    <link rel="icon" type="image/png" href="/common/images/logo.png" />
+    <link rel="stylesheet" href="/common/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/common/lib/slider/owl.carousel.min.css" />
+    <link rel="stylesheet" href="/common/lib/slider/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="/common/css/popup.css" />
+    <link rel="stylesheet" href="/common/css/notification.css" />
+    <link rel="stylesheet" href="/common/css/notificationIcon.css" />
+    <link rel="stylesheet" href="/client/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+
+<body>
+
+    <header>
+        @Html.Partial("_Header")
+    </header>
+    @*Common notification*@ @await Html.PartialAsync("_Notification")
+    @Html.Partial("_PopupForm")
+    <main role="main" class="pb-3">
+        <div class="container mt-5">
+            <div class="row container-profile align-items-start">
+                <!-- Sidebar (Chiếm 4 cột) -->
+                <div class="col-md-3">
+                    <div class="sidebar">
+                        <div class="profile-info" onclick="toggleDropdown()">
+                            <div class="profile-avatar">
+                                <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_@Model.Customer.cus_image"
+                                    alt="Avatar"
+                                    onerror="this.onerror=null; this.src='https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/default.jpeg';">
+                            </div>
+                            <h3 class="profile-username">@Model.Customer.cus_name</h3>
+                            <div class="profile-icon">
+                                <i class="fas fa-chevron-down dropdown-arrow">
+                                </i>
+                                <!-- Dropdown Menu -->
+                                <div class="list-dropdown" id="profileDropdown">
+                                    @foreach (var restaurantOwner in Model.RestaurantOwners)
+                                    {
+                                        var displayName = restaurantOwner.res_owner_name;
+                                        if (!string.IsNullOrEmpty(displayName) && displayName.Length > 10)
+                                        {
+                                            displayName = displayName.Substring(0, 10) + "...";
+                                        }
+
+                                        <div class="menu-item">
+                                            <a href="@Url.Action("SetResOwner", "RestaurantOwner", new { resOwner_id = restaurantOwner.res_owner_id })"
+                                                style="text-decoration:none; color:inherit;">
+                                                <i class="fas fa-user"></i> @displayName
+                                                <i class="fas fa-sign-out-alt"></i>
+                                            </a>
+                                        </div>
+                                    }
+
+                                    <div class="menu-item open-dynamic-modal" data-title="Nhập thông tin chủ nhà hàng"
+                                        data-fields="Name|Tên chủ nhà hàng của bạn" data-action="Create"
+                                        data-controller="RestaurantOwner" data-method="POST">
+                                        <i class="fas fa-plus"></i> Tạo chủ nhà hàng
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="menu-item @(currentAction == "Profile" ? "active" : "")"
+                            onclick="location.href='@Url.Action("Profile", "Customer")'">Thông tin cá nhân</div>
+
+                        <div class="menu-item @(currentAction == "OrderHistory" ? "active" : "")"
+                            onclick="location.href='@Url.Action("OrderHistory", "Customer")'">Theo dõi đơn đặt bàn</div>
+
+                        <div class="menu-item @(currentAction == "TrackingDelivery" ? "active" : "")"
+                            onclick="location.href='@Url.Action("TrackingDelivery", "Customer")'">Theo dõi giao hàng
+                        </div>
+                        <div class="menu-item @(currentAction == "PaymentHistory" ? "active" : "")"
+                            onclick="location.href='@Url.Action("PaymentHistory", "Customer")'">Lịch sử thanh toán
+                        </div>
+                        <div class="menu-item @(currentAction == "VoucherOwned" ? "active" : "")"
+                            onclick="location.href='@Url.Action("VoucherOwned", "Customer")'">Điểm thưởng
+                        </div>
+
+                        <div class="menu-item @(currentAction == "ChangePassword" ? "active" : "")"
+                            onclick="location.href='@Url.Action("ChangePassword", "Customer")'">Đổi mật khẩu</div>
+                            
+                        <div class="menu-item" onclick="location.href='@Url.Action("Logout", "Auth")'">Đăng xuất</div>
+                    </div>
+                </div>
+                @RenderBody()
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        @Html.Partial("_Footer")
+    </footer>
+
+    <script src="/common/js/popup.js"></script>
+    <script src="/common/js/notification.js"></script>
+    <script src="/common/js/notificationIcon.js"></script>
+    <script src="/common/lib/jquery/jquery-3.6.0.min.js"></script>
+    <script src="/common/lib/bootstrap/bootstrap.min.js"></script>
+    <script src="/common/lib/slider/owl.carousel.min.js"></script>
+    <script src="/client/js/Cookies.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="/client/js/site.js" asp-append-version="true"></script>
+    <script src="/client/js/chat.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>
+
+
+<script>
+    // Active menu khi bấm
+    document.addEventListener('DOMContentLoaded', function () {
+        const items = document.querySelectorAll('.sidebar .menu-item');
+
+        items.forEach(item => {
+            item.addEventListener('click', function () {
+                items.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    });
+</script>

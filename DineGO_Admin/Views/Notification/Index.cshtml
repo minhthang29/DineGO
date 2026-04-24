@@ -1,0 +1,99 @@
+@model List<Core.Models.Notification>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Thông báo";
+}
+
+<h2 class="text-2xl font-bold mb-6">Danh sách Thông báo</h2>
+<div class="mb-4">
+    <a href="@Url.Action("Create", "Notification")" class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mr-2">
+        <i class="fas fa-plus"></i> Thêm Thông báo
+    </a>
+</div>
+
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Tiêu đề</th>
+                <th class="px-6 py-3 text-left">Nội dung</th>
+                <th class="px-6 py-3 text-left">Action</th>
+                <th class="px-6 py-3 text-left">Loại</th>
+                <th class="px-6 py-3 text-left">Ngày tạo</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var n in Model)
+                {
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <td class="px-6 py-4">@n.noti_id</td>
+                        <td class="px-6 py-4 font-semibold">@n.noti_title</td>
+                        <td class="px-6 py-4">
+                            @if (n.noti_content.Length > 50)
+                            {
+                                <span title="@n.noti_content">@n.noti_content.Substring(0, 50)...</span>
+                            }
+                            else
+                            {
+                                @n.noti_content
+                            }
+                        </td>
+                        <td class="px-6 py-4">
+                            @if (!string.IsNullOrEmpty(n.noti_action))
+                            {
+                                if (n.noti_action.Length > 30)
+                                {
+                                    <span title="@n.noti_action" class="text-blue-600">@n.noti_action.Substring(0, 30)...</span>
+                                }
+                                else
+                                {
+                                    <span class="text-blue-600">@n.noti_action</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">Không có</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs rounded-full 
+                                @switch(n.noti_type) {
+                                    case "welcome": @("bg-green-100 text-green-800") break;
+                                    case "order": @("bg-blue-100 text-blue-800") break;
+                                    case "promotion": @("bg-yellow-100 text-yellow-800") break;
+                                    case "payment": @("bg-red-100 text-red-800") break;
+                                    default: @("bg-gray-100 text-gray-800") break;
+                                }">
+                                @n.noti_type
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">@n.noti_date.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="px-6 py-4">
+                            <div class="flex space-x-3 text-lg">
+                                <a href="@Url.Action("Edit", "Notification", new { id = n.noti_id })" class="text-blue-600 hover:text-blue-800" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="@Url.Action("Delete", "Notification", new { id = n.noti_id })" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo này?');" class="inline">
+                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Xóa">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-gray-500">Không có thông báo nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

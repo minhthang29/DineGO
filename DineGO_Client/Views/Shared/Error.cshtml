@@ -1,0 +1,27 @@
+﻿@model Core.Models.ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="container text-center mt-5">
+    <h1 class="text-danger">Oops! Something went wrong.</h1>
+    <h4>We apologize for the inconvenience.</h4>
+
+    @if (Model.ShowRequestId)
+    {
+        <p><strong>Request ID:</strong> <code>@Model.RequestId</code></p>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger mt-3">
+            <h5>Error Details</h5>
+            <p>@Model.ErrorMessage</p>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a href="/" class="btn btn-primary">Go Back to Home</a>
+        <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+    </div>
+</div>

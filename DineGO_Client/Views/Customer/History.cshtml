@@ -1,0 +1,55 @@
+@model Core.Models.Client.Custom.CustomProfileViewModel
+@{
+    Layout = "../../Views/Shared/_Profile.cshtml";
+    ViewData["Title"] = "Lịch sử điểm";
+}
+
+@{
+    var history = Model.Data["History"] as List<Core.Models.CustomerPointHistory>;
+}
+
+<div class="col-md-9">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="mb-0">Lịch sử điểm</h2>
+                <a asp-action="VoucherOwned" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Quay lại Voucher
+                </a>
+            </div>
+
+            @if (history == null || !history.Any())
+            {
+                <div class="alert alert-warning">Chưa có giao dịch điểm nào.</div>
+            }
+            else
+            {
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Mô tả</th>
+                                <th>Thay đổi</th>
+                                <th>Số dư sau</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in history)
+                            {
+                                <tr>
+                                    <td>@h.created_date.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@h.description</td>
+                                    <td class="@(h.change_amount >= 0 ? "text-success" : "text-danger")">
+                                        @((h.change_amount >= 0 ? "+" : "") + h.change_amount)
+                                    </td>
+                                    <td>@h.balance_after</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

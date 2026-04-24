@@ -1,0 +1,168 @@
+@model List<Core.Models.Order>
+@{
+    ViewData["Title"] = "Quản lý hóa đơn đặt món";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+    var statusList = new[] {
+new { Value = 0, Text = "Chờ xác nhận", Badge = "badge-warning", Bg = "bg-warning text-dark" },
+new { Value = 1, Text = "Đang chế biến", Badge = "badge-primary", Bg = "bg-primary text-white" },
+new { Value = 2, Text = "Đang giao", Badge = "badge-info", Bg = "bg-info text-dark" },
+new { Value = 3, Text = "Hoàn thành", Badge = "badge-success", Bg = "bg-success text-white" },
+new { Value = 4, Text = "Đã hủy", Badge = "badge-danger", Bg = "bg-danger text-white" }
+};
+}
+
+<style>
+    html,
+    body {
+        height: 100%;
+    }
+
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    main.order-page-main {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .order-table-scroll {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        min-height: 0;
+        max-height: 70vh;
+    }
+
+    .order-status-badge {
+        border-radius: 1rem;
+        font-weight: 600;
+        font-size: 1rem;
+        min-width: 110px;
+        display: inline-block;
+        text-align: center;
+        padding: 0.5em 1.2em;
+        border: 1.5px solid #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2px;
+    }
+
+    .order-table-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #f8d7da;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+</style>
+
+<main class="order-page-main">
+    <div class="container mt-2 d-flex flex-column" style="height:100%;">
+        <h2 class="mb-4 text-2xl font-bold text-danger"><strong>Quản lý hóa đơn đặt món</strong></h2>
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info text-center">Không có đơn hàng nào</div>
+        }
+        else
+        {
+            <ul class="nav nav-tabs mb-3" id="orderStatusTabs">
+                <li class="nav-item"><a class="nav-link active" data-status="all" href="#">Tất cả</a></li>
+                <li class="nav-item"><a class="nav-link bg-warning text-white" data-status="0" href="#">Chờ xác nhận</a></li>
+                <li class="nav-item"><a class="nav-link bg-primary text-white" data-status="1" href="#">Đang chế biến</a></li>
+                <li class="nav-item"><a class="nav-link bg-orange text-white" data-status="2" href="#">Đang giao</a></li>
+                <li class="nav-item"><a class="nav-link bg-success text-white" data-status="3" href="#">Hoàn thành</a></li>
+                <li class="nav-item"><a class="nav-link bg-danger text-white" data-status="4" href="#">Đã hủy</a></li>
+            </ul>
+            <div class="table-responsive shadow rounded order-table-scroll">
+                <table class="table table-bordered table-hover bg-white">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            var status = statusList.FirstOrDefault(s => s.Value == order.order_status);
+                            <tr data-status="@order.order_status">
+                                <td class="font-weight-bold">@order.order_id</td>
+                                <td>@order.customer?.cus_name</td>
+                                <td>@order.order_date.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-success font-weight-bold">@order.order_total.ToString("N0") VNĐ</td>
+                                <td>
+                                    @{
+                                        string badgeClass = order.order_status switch
+                                        {
+                                            0 => "badge bg-warning text-dark", // Chờ xác nhận: vàng
+                                            1 => "badge bg-primary", // Đã xác nhận: xanh lá
+                                            2 => "badge bg-orange", // Đang giao: đỏ
+                                            3 => "badge bg-success", // Hoàn thành: xanh dương
+                                            4 => "badge bg-secondary", // Đã hủy: xám
+                                            _ => "badge bg-secondary"
+                                        };
+                                    }
+                                    <span class="@badgeClass">@status?.Text</span>
+                                </td>
+                                <td>
+                                        <a asp-action="Detail" asp-controller="Order" asp-route-id="@order.order_id"
+                                            class="btn btn-sm btn-info">
+                                            Xem chi tiết
+                                        </a>
+                                </td>
+                            </tr>
+                        }
+                        <tr id="noOrderRow" style="display:none">
+                            <td colspan="6" class="text-center text-muted">Không có đơn hàng nào</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('#orderStatusTabs .nav-link');
+        const rows = document.querySelectorAll('table tbody tr[data-status]');
+        const noOrderRow = document.getElementById('noOrderRow');
+        function updateNoOrderRow() {
+            let anyVisible = false;
+            rows.forEach(row => {
+                if (row.style.display !== 'none') anyVisible = true;
+            });
+            if (!anyVisible) {
+                noOrderRow.style.display = '';
+            } else {
+                noOrderRow.style.display = 'none';
+            }
+        }
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function (e) {
+                e.preventDefault();
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const status = this.getAttribute('data-status');
+                rows.forEach(row => {
+                    if (status === 'all' || row.getAttribute('data-status') === status) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                updateNoOrderRow();
+            });
+        });
+        updateNoOrderRow();
+    });
+</script>
+</div>
+</main>

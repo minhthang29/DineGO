@@ -1,0 +1,84 @@
+/* Nút thêm ảnh mặc định */
+.add-image-box {
+    border: 2px solid #198720;
+    border-radius: 8px;
+    padding: 25px 0px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #198720;
+    height: 50px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    aspect-ratio: 1 / 1;
+    flex-direction: row;
+}
+
+.add-image-box:hover {
+  border-color: #4CAF50;
+  color: #4CAF50;
+  background: #f9f9f9;
+}
+
+.add-image-box i {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 32px;
+  color: inherit;
+}
+
+.add-image-box span {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* Wrapper preview */
+.image-upload-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Layouts */
+.image-full {
+  width: 100%;
+  position: relative;
+}
+
+.image-half {
+  width: 48%;
+  position: relative;
+}
+
+.image-grid {
+  width: calc(32% - 8px);
+  position: relative;
+}
+
+/* Ảnh */
+.image-full img,
+.image-half img,
+.image-grid img {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+  height: auto;
+}
+
+/* Nút xoá */
+.remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  cursor: pointer;
+}

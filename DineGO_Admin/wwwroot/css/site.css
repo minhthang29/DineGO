@@ -1,0 +1,99 @@
+/* Thanh_Start_Css */
+/* Begin Admin layout */
+
+body {
+  background-color: #f8f9fc;
+}
+
+.sidebar {
+  background-color: #4e73df;
+  min-height: 100vh;
+  min-width: 210px
+}
+
+.sidebar .nav-link {
+  color: white;
+}
+
+.sidebar .nav-link:hover {
+  background-color: #2e59d9;
+}
+
+.sidebar .nav-link.active {
+  background-color: #2e59d9;
+}
+
+.topbar {
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  background-color: #36b9cc;
+}
+
+/* End Admin layout */
+
+
+
+
+/*Begin css for table */
+
+.table td {
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.table td.description {
+  max-width: 200px;
+}
+
+/* End css for table */
+
+/* Thanh_End_Css */
+
+
+
+/* Thang _ Reservation _ Start */
+body {
+  background-color: #f8f9fa;
+}
+
+.booking-container {
+  max-width: 900px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Thang _ Reservation _ End */
+
+/* Thêm hiệu ứng cho submenu */
+#restaurant-submenu {
+  transition-property: max-height, opacity;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+}
+
+#restaurant-submenu.hidden {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+#restaurant-submenu:not(.hidden) {
+  max-height: 10rem;
+  /* hoặc lớn hơn nếu submenu dài hơn */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#sidebar.-translate-x-full {
+  transform: translateX(-100%);
+}

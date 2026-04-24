@@ -1,0 +1,168 @@
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Update Restaurant";
+    // Giả sử Model.res_images là chuỗi url phân cách bởi dấu phẩy
+    var oldImages = (Model?.res_images ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+}
+
+<div class="max-w-xl mx-auto mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+    <h2 class="text-2xl font-bold text-center mb-6">Update Restaurant</h2>
+    <form action="/Restaurant/UpdateRestaurant" method="post" enctype="multipart/form-data" class="space-y-5">
+        <input type="hidden" name="res_id" value="@Model?.res_id" />
+        <input type="hidden" name="res_rate" value="@Model?.res_rate"/>
+        <input type="hidden" name="res_discount_promotion" value="@Model?.res_discount_promotion"/>
+        <input type="hidden" name="res_reservation_fee" value="@Model?.res_reservation_fee"/>
+        <input type="hidden" name="res_is_use" value="true"/>
+        <div>
+            <label class="block font-semibold mb-1">Hình ảnh</label>
+            <div id="image-preview-list" class="flex gap-3 flex-wrap mb-2">
+                @* Hiển thị ảnh cũ (nếu có) *@
+                @for (int i = 0; i < oldImages.Length; i++)
+                {
+                    <div class="img-preview w-24 h-24 rounded border border-indigo-400 flex items-center justify-center overflow-hidden relative group">
+                        <img src="@oldImages[i]" class="object-cover w-full h-full" alt="preview" />
+                        <button type="button" class="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-red-600 text-xs font-bold z-10 opacity-0 group-hover:opacity-100 transition"
+                                onclick="removeOldImage(@i)">&times;</button>
+                        <input type="hidden" name="old_images" value="@oldImages[i]" />
+                    </div>
+                }
+                <label for="res_images" class="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-indigo-400 rounded cursor-pointer hover:bg-indigo-50 transition">
+                    <span class="text-3xl text-indigo-400"><i class="fas fa-plus"></i></span>
+                    <span class="text-xs text-gray-500 mt-1">Thêm ảnh</span>
+                    <input id="res_images" name="res_images" type="file" multiple accept="image/*" class="hidden" onchange="previewImages(event)" />
+                </label>
+            </div>
+            <small class="text-gray-500">Bạn có thể chọn nhiều ảnh, tối đa 5 ảnh. Ảnh cũ sẽ bị xóa nếu bạn nhấn nút x.</small>
+        </div>
+        <div>
+            <label for="res_name" class="block font-semibold mb-1">Tên nhà hàng</label>
+            <input name="res_name" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" value="@Model?.res_name" placeholder="Nhà hàng a,--" />
+        </div>
+        <div>
+            <label for="cate_id" class="block font-semibold mb-1">Chọn danh mục</label>
+            <select name="cate_id" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500">
+                @if (ViewBag.Categories != null)
+                {
+                    foreach (var cate in ViewBag.Categories)
+                    {
+                        <option value="@cate.cate_id" @(cate.cate_id == Model?.cate_id ? "selected" : "")>@cate.cate_type</option>
+                    }
+                }
+            </select>
+        </div>
+        <div>
+            <label for="res_owner_id" class="block font-semibold mb-1">Chọn chủ nhà hàng</label>
+            <select name="res_owner_id" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500">
+                @if (ViewBag.RestaurantOwners != null)
+                {
+                    foreach (var resOwner in ViewBag.RestaurantOwners)
+                    {
+                        <option value="@resOwner.res_owner_id" @(resOwner.res_owner_id == Model?.res_owner_id ? "selected" : "")>@resOwner.res_owner_name</option>
+                    }
+                }
+            </select>
+        </div>
+        <div>
+            <label for="res_reservation_fee" class="block font-semibold mb-1">Tiền cọc khi đặt chỗ</label>
+            <input name="res_reservation_fee" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" value="@Model?.res_reservation_fee" placeholder="100.000,--" />
+        </div>
+        <div>
+            <label for="res_phone" class="block font-semibold mb-1">Số điện thoại</label>
+            <input name="res_phone" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" value="@Model?.res_phone" placeholder="Nhập số điện thoại" />
+        </div>
+        <div>
+            <label for="res_email" class="block font-semibold mb-1">Email của nhà hàng</label>
+            <input name="res_email" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" value="@Model?.res_email" placeholder="Nhập email" />
+        </div>
+        <div>
+            <label for="res_address" class="block font-semibold mb-1">Địa chỉ</label>
+            <input name="res_address" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" value="@Model?.res_address" placeholder="Nhập địa chỉ" />
+        </div>
+        <div>
+            <label for="res_description" class="block font-semibold mb-1">Mô tả nhà hàng</label>
+            <textarea name="res_description" rows="3" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" placeholder="Mô tả nhà hàng theo phong cách của bạn">@Model?.res_description</textarea>
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded transition">Cập nhật nhà hàng</button>
+            <a href="javascript:history.back()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded text-center transition">Quay lại</a>
+        </div>
+    </form>
+
+</div>
+
+<script>
+window.selectedFiles = [];
+window.oldImages = Array.from(document.querySelectorAll('input[name="old_images"]')).map(i => i.value);
+
+function previewImages(event) {
+    const input = document.getElementById('res_images');
+    const previewList = document.getElementById('image-preview-list');
+    const addBtn = previewList.querySelector('label[for="res_images"]');
+
+    // Nếu là sự kiện chọn file mới
+    if (event && event.target && event.target.files) {
+        let files = Array.from(event.target.files);
+
+        // Tổng số ảnh (mới + cũ) không quá 5
+        if (files.length + window.oldImages.length > 5) {
+            alert('Bạn chỉ được chọn tối đa 5 ảnh (bao gồm cả ảnh cũ)!');
+            input.value = "";
+            return;
+        }
+
+        // Thêm file mới vào selectedFiles
+        files.forEach(f => {
+            if (window.selectedFiles.length + window.oldImages.length < 5) window.selectedFiles.push(f);
+        });
+    }
+
+    // Xóa các preview ảnh mới cũ (chỉ giữ lại nút add và ảnh cũ chưa bị xóa)
+    previewList.querySelectorAll('.img-preview').forEach(e => e.remove());
+
+    // Hiển thị preview cho ảnh cũ còn lại
+    window.oldImages.forEach((url, idx) => {
+        const div = document.createElement('div');
+        div.className = 'img-preview w-24 h-24 rounded border border-indigo-400 flex items-center justify-center overflow-hidden relative group';
+        div.innerHTML = `
+            <img src="${url}" class="object-cover w-full h-full" alt="preview" />
+            <button type="button" class="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-red-600 text-xs font-bold z-10 opacity-0 group-hover:opacity-100 transition"
+                onclick="removeOldImage(${idx})">&times;</button>
+            <input type="hidden" name="old_images" value="${url}" />
+        `;
+        previewList.insertBefore(div, addBtn);
+    });
+
+    // Hiển thị preview cho từng file đã chọn
+    window.selectedFiles.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const div = document.createElement('div');
+            div.className = 'img-preview w-24 h-24 rounded border border-indigo-400 flex items-center justify-center overflow-hidden relative group';
+            div.innerHTML = `
+                <img src="${e.target.result}" class="object-cover w-full h-full" alt="preview" />
+                <button type="button" class="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-red-600 text-xs font-bold z-10 opacity-0 group-hover:opacity-100 transition"
+                    onclick="removeImage(${idx})">&times;</button>
+            `;
+            previewList.insertBefore(div, addBtn);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Cập nhật lại input files
+    const dt = new DataTransfer();
+    window.selectedFiles.forEach(f => dt.items.add(f));
+    input.files = dt.files;
+}
+
+// Xóa ảnh mới
+function removeImage(idx) {
+    window.selectedFiles.splice(idx, 1);
+    previewImages({});
+}
+
+// Xóa ảnh cũ
+function removeOldImage(idx) {
+    window.oldImages.splice(idx, 1);
+    previewImages({});
+}
+</script>

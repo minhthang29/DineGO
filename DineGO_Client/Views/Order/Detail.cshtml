@@ -1,0 +1,150 @@
+@model List<Core.Models.OrderDetail>
+@{
+    ViewData["Title"] = "Chi tiết món";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+}
+
+@{
+    // Null-safe: Lấy từ first item (DAO populate order navigation)
+    var firstItem = Model.FirstOrDefault();
+    var orderId = firstItem?.order_id ?? 0;
+    var order = firstItem?.order;  // Order từ DAO (có customer, restaurant)
+    var customer = order?.customer;
+    var restaurant = order?.restaurant;
+    var resId = order?.res_id ?? 0;  // Lấy res_id cho form POST
+}
+
+@if (orderId == 0 || order == null)
+{
+    <div class="alert alert-danger">Dữ liệu đơn hàng không hợp lệ từ DAO.</div>
+    return;
+}
+
+<div class="container mt-3">
+
+    <!-- 1. Thông tin đơn hàng (từ DAO's Order) -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-danger text-white">
+            <h4>Thông tin đơn hàng #@orderId</h4>
+        </div>
+        <div class="card-body row">
+            <div class="col-md-6">
+                <p><strong>Ngày đặt:</strong> @order.order_date.ToString("dd/MM/yyyy HH:mm")</p>
+                <p><strong>Trạng thái:</strong> 
+                    @switch(order.order_status)
+                    {
+                        case 0: <span class="badge bg-warning text-dark">Chờ xác nhận</span> break;
+                        case 1: <span class="badge bg-primary">Đang chế biến</span> break;
+                        case 2: <span class="badge bg-info text-dark">Đang giao</span> break;
+                        case 3: <span class="badge bg-success">Hoàn thành</span> break;
+                        case 4: <span class="badge bg-danger">Đã hủy</span> break;
+                        default: <span class="badge bg-secondary">Không xác định</span> break;
+                    }
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Địa chỉ giao:</strong> @order.delivery_address_snapshot</p>  <!-- Từ DAO's Order snapshot -->
+                <p><strong>Tên khách hàng:</strong> @customer.cus_name</p>
+                <p><strong>Email:</strong> @customer.cus_email</p>
+                <p><strong>Số điện thoại:</strong> @customer.cus_phone</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Danh sách món ăn (từ DAO's OrderDetails) -->
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h5>Danh sách món ăn (@Model.Count món)</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Tên món</th>
+                        <th>Số lượng</th>
+                        <th>Giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.FirstImage))
+                            {
+                                <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/foods/thumb_@item.food_image_snapshot.FirstOrDefault()" alt="Ảnh món" 
+                                     style="width:60px;height:60px;object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <span>Không có ảnh</span>
+                            }
+                        </td>
+                        <td>@item.food_name_snapshot</td>
+                        <td>@item.order_quantity</td>
+                        <td>@item.order_price.ToString("N0") VND</td>
+                        <td>@((item.order_quantity * item.order_price).ToString("N0")) VND</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <!-- Tổng từ OrderDetails (match DAO) -->
+            <p class="text-end font-weight-bold text-dark">Tổng thành tiền: <strong>@(Model.Sum(d => d.order_quantity * d.order_price).ToString("N0")) VND </strong></p>
+            <p class="text-end font-weight-bold text-dark">Khuyến mãi: <strong>@(order.order_price_discount.GetValueOrDefault().ToString("N0")) VND </strong></p>
+            <p class="text-end font-weight-bold text-dark">Phí vận chuyển: <strong>@(order.delivery_fee.GetValueOrDefault().ToString("N0")) VND </strong></p>
+            <p class="text-end font-weight-bold text-success">Tổng thành tiền thực nhận: <strong>@(order.order_total.ToString("N0")) VND </strong></p>
+            <div class="card-body">
+            @if (order.order_status == 0)  
+            {
+                <form asp-action="ChangeStatus" asp-controller="Order" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@orderId" />
+                    <input type="hidden" name="newStatus" value="1" /> 
+                    <input type="hidden" name="res_id" value="@resId" />
+                    <button type="submit" class="btn btn-primary me-2">Xác nhận đơn hàng</button>
+                </form>
+                <form asp-action="ChangeStatus" asp-controller="Order" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@orderId" />
+                    <input type="hidden" name="newStatus" value="4" /> 
+                    <input type="hidden" name="res_id" value="@resId" />
+                    <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
+                </form>
+            }
+            else if (order.order_status == 1) 
+            {
+                <form asp-action="ChangeStatus" asp-controller="Order" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@orderId" />
+                    <input type="hidden" name="newStatus" value="2" /> 
+                    <input type="hidden" name="res_id" value="@resId" />
+                    <button type="submit" class="btn btn-primary">Chuyển sang Đang giao</button>
+                </form>
+            }
+            else if (order.order_status == 2) 
+            {
+                <form asp-action="ChangeStatus" asp-controller="Order" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@orderId" />
+                    <input type="hidden" name="newStatus" value="3" /> 
+                    <input type="hidden" name="res_id" value="@resId" />
+                    <button type="submit" class="btn btn-success me-2">Hoàn thành đơn hàng</button>
+                </form>
+                <form asp-action="ChangeStatus" asp-controller="Order" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@orderId" />
+                    <input type="hidden" name="newStatus" value="4" />  
+                    <input type="hidden" name="res_id" value="@resId" />
+                    <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
+                </form>
+            }
+            else
+            {
+                <p class="text-muted">Đơn hàng đã kết thúc, không thể thay đổi trạng thái.</p>
+            }
+        </div>
+        </div>
+    </div>
+</div>

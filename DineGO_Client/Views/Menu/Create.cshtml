@@ -1,0 +1,41 @@
+@model Core.Models.Client.Custom.MenuWithRestaurantViewModel
+
+@{
+    ViewData["Title"] = "Thêm Menu Mới";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 500px;">
+    <div class="card shadow-lg p-4 rounded-4" style="width: 100%; max-width: 600px; background-color: #fff;">
+        <h3 class="text-center fw-bold text-danger mb-4">🍱 Thêm Menu Mới</h3>
+
+        <form id="menuForm" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Menu.res_id" id="resId" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Tên menu <span class="text-danger">*</span></label>
+                <input type="text" name="Menu.menu_name" id="menuName" class="form-control rounded-3 border-danger" placeholder="Nhập tên menu" />
+                <span class="text-danger" id="menuNameError"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Loại menu <span class="text-danger">*</span></label>
+                <input type="text" name="Menu.menu_type" id="menuType" class="form-control rounded-3 border-danger" placeholder="Ví dụ: Lunch, Dinner..." />
+                <span class="text-danger" id="menuTypeError"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold text-danger">Ảnh menu (chọn từ máy)</label>
+                <input type="file" name="imageFiles" id="imageFile" multiple class="form-control rounded-3 border-danger" />
+                <span class="text-danger" id="imageFileError"></span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="ListMenu" asp-route-res_id="@Model.Restaurant.res_id" class="btn btn-outline-secondary rounded-3 px-4">Quay lại</a>
+                <button type="submit" class="btn btn-danger rounded-3 px-4">Thêm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/client/js/menu.js" asp-append-version="true"></script>

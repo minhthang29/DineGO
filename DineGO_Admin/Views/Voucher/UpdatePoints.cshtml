@@ -1,0 +1,45 @@
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Cộng điểm cho khách hàng";
+    var customers = ViewBag.Customers as List<Core.Models.Customer>;
+}
+
+<div class="flex justify-center mt-10">
+    <div class="w-full max-w-lg bg-white dark:bg-gray-800 p-6 rounded shadow">
+        <h2 class="text-2xl font-bold mb-6 text-center text-black dark:text-white">
+            Cộng điểm cho khách hàng
+        </h2>
+
+        <form asp-action="UpdatePoints" method="post" class="space-y-4">
+            <div>
+                <label class="block font-semibold mb-1 text-black dark:text-white">Chọn khách hàng</label>
+                <select name="cusId" class="border rounded px-3 py-2 w-full text-black" required>
+                    @foreach (var c in customers)
+                    {
+                        <option value="@c.cus_id">@c.cus_name (@c.cus_email)</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-semibold mb-1 text-black dark:text-white">Số điểm</label>
+                <input type="number" name="changeAmount"
+                       class="border rounded px-3 py-2 w-full text-black"
+                       placeholder="Nhập số điểm" required />
+            </div>
+
+            <div>
+                <label class="block font-semibold mb-1 text-black dark:text-white">Mô tả</label>
+                <textarea name="description"
+                          class="border rounded px-3 py-2 w-full text-black"
+                          placeholder="Nhập mô tả (nếu có)"></textarea>
+            </div>
+
+            <div class="flex justify-center">
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    <i class="fas fa-check"></i> Xác nhận cộng điểm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,315 @@
+/* Like css - Start - Thang*/
+.reaction-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.reaction-menu {
+  display: none;
+  position: absolute;
+  top: -50px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 6px 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  z-index: 9999;
+}
+
+.reaction-menu button {
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.2s;
+}
+
+.reaction-menu button:hover {
+  transform: scale(1.2);
+}
+
+.reaction-menu button.active-reaction {
+  transform: scale(1.2);
+  border-bottom: 2px solid #444;
+}
+
+.main-reaction-btn {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-reaction {
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.btn-reaction.default {
+  color: #555;
+  /* xám tối */
+  filter: grayscale(100%);
+  /* chuyển icon/text sang trắng đen */
+}
+
+.btn-reaction.like {
+  color: #1877f2;
+}
+
+.btn-reaction.love {
+  color: #e0245e;
+}
+
+.btn-reaction.haha {
+  color: #f7b125;
+}
+
+.btn-reaction.wow {
+  color: #e9710f;
+}
+
+.btn-reaction.sad {
+  color: #616770;
+}
+
+.btn-reaction.angry {
+  color: red;
+}
+
+/* Like css - End - Thang*/
+
+
+/* Display post image in index - Start _ Thang */
+.post-images-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.post-images-grid.one {
+  grid-template-columns: 1fr;
+}
+
+.post-images-grid.one .grid-item {
+  aspect-ratio: unset;
+  /* ✅ Cho phép chiều cao tự nhiên theo tỷ lệ ảnh */
+  height: auto;
+}
+
+.post-images-grid.one .grid-item img {
+  width: 100%;
+  height: auto;
+  /* ✅ Chiều cao tự động theo tỷ lệ gốc */
+  object-fit: contain;
+  /* Đảm bảo không cắt ảnh */
+  border-radius: 8px;
+}
+
+.post-images-grid.two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.post-images-grid.two .grid-item {
+  aspect-ratio: 1 / 1;
+}
+
+.post-images-grid.three {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.post-images-grid.three .grid-item:nth-child(1) {
+  grid-row: span 2;
+}
+
+.post-images-grid.four,
+.post-images-grid.more {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  aspect-ratio: 1 / 1;
+}
+
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.more-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-weight: bold;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  inset: 0;
+}
+
+/* Display post image in index - End _ Thang */
+
+/* Comment input - Start - Thang */
+.comment-wrapper {
+  padding: 4px 8px;
+}
+
+.comment-input-box {
+  position: relative;
+  background-color: #f0f2f5;
+  border-radius: 999px;
+  padding: 6px 0px 6px 16px;
+  border: 1px solid #d8d8d8;
+  width: 100%;
+}
+
+.comment-input {
+  border: none;
+  background-color: transparent;
+  outline: none;
+  box-shadow: none;
+  width: 100%;
+  font-size: 14px;
+}
+
+.comment-input::placeholder {
+  color: #65676b;
+}
+
+.send-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px;
+  background-color: transparent;
+  border: none;
+}
+
+.send-btn:hover svg {
+  fill: var(--primary-color);
+  transform: scale(1.15);
+  transition: 0.2s ease;
+}
+
+/* Comment input - End - Thang */
+
+/* Emoji icon - Start - Thang */
+.emoji-toggle-btn {
+  position: absolute;
+  right: 40px;
+  /* 👈 Có thể chỉnh thành 52px nếu muốn */
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px;
+  background-color: transparent;
+  border: none;
+}
+
+.emoji-toggle-btn i {
+  font-size: 20px;
+  color: gray;
+  transition: all 0.2s ease-in-out;
+}
+
+.emoji-toggle-btn i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+
+.emoji-toggle-btn:hover i {
+  color: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.emoji-picker.d-none {
+  display: none !important;
+}
+
+.emoji-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background-color: #fff;
+  border-radius: 8px;
+  z-index: 999;
+  max-width: 320px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  gap: 6px;
+}
+
+.emoji-form-create .emoji-picker {
+  bottom: 100%;
+  /* ⬇️ Dưới icon */
+  left: 50%;
+  /* reset lại */
+  right: 0;
+  /* căn phải icon */
+  margin-top: 6px;
+}
+
+.emoji-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  text-align: center;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.emoji-btn:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.2);
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Emoji icon - End - Thang */
+
+
+
+/* style cho bài chưa duyệt */
+.card.post.unapproved {
+  background-color: #f8f9fa; /* nhẹ nhàng, không quá chói */
+  filter: grayscale(40%);
+  opacity: 0.85;
+  border-color: #e9ecef;
+}
+
+/* giảm độ nổi bật text để trông 'mờ' hơn */
+.card.post.unapproved .post-header,
+.card.post.unapproved .post-content,
+.card.post.unapproved .post-images-grid,
+.card.post.unapproved .post-video,
+.card.post.unapproved .actions {
+  color: #6c757d !important;
+}
+
+/* nếu muốn có overlay nhẹ khi nhiều ảnh */
+.card.post.unapproved .more-overlay {
+  background: rgba(0,0,0,0.45);
+}
+
+/* vẫn giữ dropdown / button tương tác được cho owner */
+.card.post.unapproved .toggle-dropdown,
+.card.post.unapproved .menu-item,
+.card.post.unapproved .btn {
+  pointer-events: auto;
+}

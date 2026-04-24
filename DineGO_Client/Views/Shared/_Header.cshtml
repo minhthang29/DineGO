@@ -1,0 +1,74 @@
+﻿@using Microsoft.AspNetCore.Http;
+
+<div class="header-wrapper container">
+  @* Dùng fixed-top để fix header không bị mất khi di chuyển xuống *@
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow" style="background-color: #c0392b;">
+    <div class="container-fluid">
+      <a asp-controller="Home" asp-action="Index" class="logo-text navbar-brand p-0">
+        <img src="/common/images/logo_sticker.png" alt="DineGO Logo" style="height: 70px;" />
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
+        aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 300px;">
+          <li class="nav-item">
+            <a class="nav-link" asp-controller="Restaurant" asp-action="Search">Nhà hàng gần bạn</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" asp-controller="Food" asp-action="Index">Đặt món</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" asp-controller="Blog" asp-action="Index">Tin tức và blog</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" asp-controller="Post" asp-action="Index">Mạng xã hội</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" asp-controller="Report" asp-action="Index">Báo cáo</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" asp-controller="Contact" asp-action="Index">Liên hệ</a>
+          </li>
+        </ul>
+        @{
+          var cusId = Context.Session.GetInt32("cus_id");
+          var cusName = Context.Session.GetString("cus_name");
+          var userLocation = Context.Session.GetString("USER_LOCATION");
+        }
+        <div class="header-actions d-flex align-items-center gap-3">
+          
+          @if (!string.IsNullOrEmpty(userLocation))
+          {
+          <span class="text-white header-location">📍 @userLocation</span>
+          }
+          @Html.Partial("_NotificationIcon")
+          <!-- THANH CHAT -->
+          @Html.Partial("_chat")
+          <!-- GIỎ HÀNG -->
+          @Html.Partial("_Cart")
+          <!-- ĐĂNG NHẬP / PROFILE -->
+          <div class="profile-container" id="profileContainer">
+            <div class="profile-name">
+              @if (cusId.HasValue)
+              {
+                <span class="fixed-username">@cusName</span>
+                <div class="profile-dropdown" id="profileMenu">
+                  <a asp-controller="Customer" asp-action="Profile">Thông tin tài khoản</a>
+                  <a asp-controller="Customer" asp-action="ChangePassword">Quản lý mật khẩu</a>
+                  <a asp-controller="Customer" asp-action="OrderHistory">Theo dõi đặt bàn</a>
+                  <a asp-controller="Customer" asp-action="TrackingDelivery">Theo dõi giao hàng</a>
+                  <a class="logout-btn btn-danger" style ="color: white" asp-controller="Auth" asp-action="Logout">Đăng xuất</a>
+                </div>
+              }
+              else
+              {
+                <span class="guest-text" onclick="location.href='@Url.Action("Login", "Auth")'">Đăng nhập</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+  </nav>
+</div>

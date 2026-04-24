@@ -1,0 +1,15 @@
+﻿DineGO_Api/obj
+DineGO_Client/obj
+DineGO_Api/bin
+DineGO_Client/bin
+.vs
+Core/obj
+Core/bin
+DineGO_Admin/bin
+DineGO_Admin/obj
+
+# Python & AI folder
+DineGO_Api/AIPredict/venv/
+DineGO_Api/AIPredict/__pycache__/
+DineGO_Api/AIPredict/models/
+/DineGO_Api/venv

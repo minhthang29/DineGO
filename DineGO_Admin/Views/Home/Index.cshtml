@@ -1,0 +1,82 @@
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Admin Home";
+}
+
+<div class="overflow-y-auto h-[calc(100vh-4rem)] p-2">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-white dark:bg-gray-800 p-2 rounded shadow relative">
+      <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+              onclick="maximizeChart('revenueChart', 'Doanh Thu')"
+              title="Phóng to">
+        <i class="fas fa-expand fa-lg"></i>
+      </button>
+      <h3 class="text-base font-semibold mb-2">Doanh Thu</h3>
+      <canvas id="revenueChart" class="mb-2"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-2 rounded shadow relative">
+      <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+              onclick="maximizeChart('ordersChart', 'Số Lượng Đơn Hàng')"
+              title="Phóng to">
+        <i class="fas fa-expand fa-lg"></i>
+      </button>
+      <h3 class="text-base font-semibold mb-2">Số Lượng Đơn Hàng</h3>
+      <canvas id="ordersChart" class="mb-2"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-2 rounded shadow relative">
+      <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+              onclick="maximizeChart('customersChart', 'Tỷ lệ loại khách hàng')"
+              title="Phóng to">
+        <i class="fas fa-expand fa-lg"></i>
+      </button>
+      <h3 class="text-base font-semibold mb-2">Tỷ lệ loại khách hàng</h3>
+      <canvas id="customersChart" class="mb-2" style="height:280px;max-height:280px;"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-2 rounded shadow relative">
+      <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+              onclick="maximizeChart('orderStatusChart', 'Tỷ lệ loại khách hàng')"
+              title="Phóng to">
+        <i class="fas fa-expand fa-lg"></i>
+      </button>
+      <h3 class="text-base font-semibold mb-2">Tỷ lệ trạng thái đơn hàng</h3>
+      <canvas id="orderStatusChart" class="mb-2"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-2 rounded shadow relative">
+      <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+              onclick="maximizeChart('topRestaurantChart', 'Top 5 Nhà hàng doanh thu cao')"
+              title="Phóng to">
+        <i class="fas fa-expand fa-lg"></i>
+      </button>
+      <h3 class="text-base font-semibold mb-2">Top 5 Nhà hàng doanh thu cao</h3>
+      <canvas id="topRestaurantChart" class="mb-2"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-2 rounded shadow relative">
+      <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+              onclick="maximizeChart('serviceRevenueChart', 'So sánh doanh thu các dịch vụ')"
+              title="Phóng to">
+        <i class="fas fa-expand fa-lg"></i>
+      </button>
+      <h3 class="text-base font-semibold mb-2">So sánh doanh thu các dịch vụ</h3>
+      <canvas id="serviceRevenueChart" class="mb-2"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-2 rounded shadow md:col-span-2 relative">
+      <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+              onclick="maximizeChart('customerGroupRadarChart', 'Phân tích khách hàng theo nhóm')"
+              title="Phóng to">
+        <i class="fas fa-expand fa-lg"></i>
+      </button>
+      <h3 class="text-base font-semibold mb-2">Phân tích khách hàng theo nhóm</h3>
+      <canvas id="customerGroupRadarChart" class="mb-2" style="height:280px;max-height:280px;"></canvas>
+    </div>
+  </div>
+</div>
+<div id="chartModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white dark:bg-gray-800 rounded shadow-lg p-4 relative w-[90vw] h-[90vh] flex flex-col">
+    <button class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600" onclick="closeChartModal()">
+      <i class="fas fa-times fa-lg"></i>
+    </button>
+    <h3 class="text-base font-semibold mb-2"></h3>
+    <canvas id="modalChart" style="flex:1;max-height:70vh;"></canvas>
+  </div>
+</div>
+<script src="/js/dashboard.js"></script>

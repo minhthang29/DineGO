@@ -1,0 +1,272 @@
+@model Core.Models.Notification
+@{
+    ViewData["Title"] = "Thêm Thông báo";
+    Layout = "../../Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <div class="max-w-4xl mx-auto mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+                <h2 class="text-2xl font-bold text-center mb-6">Thêm Thông báo Mới</h2>
+                <form asp-action="Create" method="post" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Tiêu đề -->
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold mb-2">Tiêu đề</label>
+                            <input name="noti_title" class="text-black w-full border rounded px-3 py-2" required 
+                                   placeholder="Ví dụ: Đơn hàng mới, Khuyến mãi đặc biệt..." />
+                        </div>
+
+                        <!-- Nội dung -->
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold mb-2">Nội dung</label>
+                            <textarea name="noti_content" rows="3" class="text-black w-full border rounded px-3 py-2" required
+                                      placeholder="Nội dung chi tiết của thông báo..."></textarea>
+                        </div>
+
+                        <!-- Loại thông báo -->
+                        <div>
+                            <label class="block font-semibold mb-2">Loại thông báo</label>
+                            <select id="noti_type_select" name="noti_type" class="text-black w-full border rounded px-3 py-2" required>
+                                <option value="">-- Chọn loại --</option>
+                                <option value="welcome">Chào mừng</option>
+                                <option value="order">Đơn hàng</option>
+                                <option value="payment">Thanh toán</option>
+                                <option value="promotion">Khuyến mãi</option>
+                                <option value="info">Thông tin</option>
+                                <option value="normal">Bình thường</option>
+                                <option value="schedule">Lịch trình</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Type -->
+                        <div>
+                            <label class="block font-semibold mb-2">
+                                Loại hành động
+                                <a href="@Url.Action("ActionGuide", "Notification")" target="_blank" class="text-info ml-1" title="Xem hướng dẫn">
+                                    <i class="fas fa-question-circle"></i>
+                                </a>
+                            </label>
+                            <select id="action_type_select" class="text-black w-full border rounded px-3 py-2">
+                                <option value="none">Không có hành động</option>
+                                <option value="simple_url">URL đơn giản</option>
+                                <option value="simple_action">Action đơn giản</option>
+                                <option value="order_details">Chi tiết đơn hàng</option>
+                                <option value="promotion">Khuyến mãi</option>
+                                <option value="redirect">Chuyển hướng</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Value (Dynamic based on type) -->
+                        <div id="action_value_container" class="md:col-span-2" style="display:none;">
+                            <!-- Simple URL -->
+                            <div id="simple_url_input" class="action-input" style="display:none;">
+                                <label class="block font-semibold mb-2">URL</label>
+                                <input type="text" class="text-black w-full border rounded px-3 py-2" 
+                                       placeholder="/Customer/Profile, /Customer/Orders..." />
+                                <small class="text-gray-500">Ví dụ: /Customer/Profile, /Home/Menu</small>
+                            </div>
+
+                            <!-- Simple Action -->
+                            <div id="simple_action_input" class="action-input" style="display:none;">
+                                <label class="block font-semibold mb-2">Action</label>
+                                <select class="text-black w-full border rounded px-3 py-2">
+                                    <option value="order_tracking">Theo dõi đơn hàng</option>
+                                    <option value="profile">Trang cá nhân</option>
+                                    <option value="cart">Giỏ hàng</option>
+                                </select>
+                            </div>
+
+                            <!-- Order Details -->
+                            <div id="order_details_input" class="action-input" style="display:none;">
+                                <label class="block font-semibold mb-2">Order ID</label>
+                                <input type="number" class="text-black w-full border rounded px-3 py-2" 
+                                       placeholder="123" />
+                                <small class="text-gray-500">ID của đơn hàng cần xem chi tiết</small>
+                            </div>
+
+                            <!-- Promotion -->
+                            <div id="promotion_input" class="action-input" style="display:none;">
+                                <label class="block font-semibold mb-2">Promotion ID</label>
+                                <input type="number" class="text-black w-full border rounded px-3 py-2" 
+                                       placeholder="456" />
+                                <small class="text-gray-500">ID của chương trình khuyến mãi</small>
+                            </div>
+
+                            <!-- Redirect -->
+                            <div id="redirect_input" class="action-input" style="display:none;">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                    <div class="md:col-span-3">
+                                        <label class="block font-semibold mb-2">URL</label>
+                                        <input type="url" class="text-black w-full border rounded px-3 py-2" 
+                                               placeholder="https://example.com" />
+                                    </div>
+                                    <div class="flex items-end">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="mr-2" />
+                                            <span class="text-sm">Tab mới</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <small class="text-gray-500">URL để chuyển hướng đến</small>
+                            </div>
+
+                            <!-- Hidden field for actual noti_action -->
+                            <input type="hidden" name="noti_action" id="noti_action_hidden" />
+                        </div>
+
+                        <!-- Schedule Date (chỉ hiện khi loại = schedule) -->
+                        <div id="schedule-date-group" class="md:col-span-2" style="display:none;">
+                            <label class="block font-semibold mb-2">Ngày giờ thông báo</label>
+                            <input type="datetime-local" name="noti_schedule" class="text-black w-full border rounded px-3 py-2" />
+                            <small class="text-gray-500">Thời gian gửi thông báo (để trống = gửi ngay)</small>
+                        </div>
+                    </div>
+
+                    <!-- Preview Action -->
+                    <div id="action_preview" class="bg-gray-100 p-4 rounded text-gray-500" style="display:none;">
+                        <h5 class="font-semibold mb-2">Preview Action:</h5>
+                        <code id="action_preview_text" class="text-sm"></code>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-4 pt-4">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded transition">
+                            Thêm Thông báo
+                        </button>
+                        <a href="@Url.Action("ActionGuide", "Notification")" 
+                           class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded text-center transition">
+                            Xem hướng dẫn
+                        </a>
+                        <a href="@Url.Action("Index", "Notification")" 
+                           class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded text-center transition">
+                            Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const typeSelect = document.getElementById("noti_type_select");
+        const scheduleGroup = document.getElementById("schedule-date-group");
+        const actionTypeSelect = document.getElementById("action_type_select");
+        const actionContainer = document.getElementById("action_value_container");
+        const actionInputs = document.querySelectorAll(".action-input");
+        const hiddenActionField = document.getElementById("noti_action_hidden");
+        const actionPreview = document.getElementById("action_preview");
+        const actionPreviewText = document.getElementById("action_preview_text");
+
+        // Handle notification type change
+        typeSelect.addEventListener("change", function () {
+            if (this.value === "schedule") {
+                scheduleGroup.style.display = "";
+            } else {
+                scheduleGroup.style.display = "none";
+            }
+        });
+
+        // Handle action type change
+        actionTypeSelect.addEventListener("change", function () {
+            const selectedType = this.value;
+            
+            // Hide all action inputs
+            actionInputs.forEach(input => input.style.display = "none");
+            
+            // Hide all guide contents
+            document.querySelectorAll('.guide-content').forEach(guide => guide.style.display = "none");
+            
+            // Show relevant guide
+            const guideElement = document.getElementById('guide-' + selectedType);
+            if (guideElement) {
+                guideElement.style.display = "block";
+            }
+            
+            if (selectedType === "none") {
+                actionContainer.style.display = "none";
+                actionPreview.style.display = "none";
+                hiddenActionField.value = "";
+                return;
+            }
+            
+            actionContainer.style.display = "";
+            
+            // Show relevant input
+            const targetInput = document.getElementById(selectedType + "_input");
+            if (targetInput) {
+                targetInput.style.display = "";
+            }
+            
+            updateActionValue();
+        });
+
+        // Add event listeners to all action inputs
+        actionContainer.addEventListener("input", updateActionValue);
+        actionContainer.addEventListener("change", updateActionValue);
+
+        function updateActionValue() {
+            const actionType = actionTypeSelect.value;
+            let actionValue = "";
+
+            switch (actionType) {
+                case "simple_url":
+                    const urlInput = document.querySelector("#simple_url_input input");
+                    actionValue = urlInput.value || "";
+                    break;
+
+                case "simple_action":
+                    const actionSelect = document.querySelector("#simple_action_input select");
+                    actionValue = actionSelect.value || "";
+                    break;
+
+                case "order_details":
+                    const orderIdInput = document.querySelector("#order_details_input input");
+                    const orderId = orderIdInput.value;
+                    if (orderId) {
+                        actionValue = `{"type": "order_details", "orderId": ${orderId}}`;
+                    }
+                    break;
+
+                case "promotion":
+                    const promoIdInput = document.querySelector("#promotion_input input");
+                    const promoId = promoIdInput.value;
+                    if (promoId) {
+                        actionValue = `{"type": "promotion", "promoId": ${promoId}}`;
+                    }
+                    break;
+
+                case "redirect":
+                    const redirectUrlInput = document.querySelector("#redirect_input input[type='url']");
+                    const newTabCheckbox = document.querySelector("#redirect_input input[type='checkbox']");
+                    const url = redirectUrlInput.value;
+                    if (url) {
+                        actionValue = `{"type": "redirect", "url": "${url}", "newTab": ${newTabCheckbox.checked}}`;
+                    }
+                    break;
+
+                default:
+                    actionValue = "";
+            }
+
+            hiddenActionField.value = actionValue;
+            
+            // Update preview
+            if (actionValue) {
+                actionPreviewText.textContent = actionValue;
+                actionPreview.style.display = "";
+            } else {
+                actionPreview.style.display = "none";
+            }
+        }
+
+        // Initialize with default guide
+        document.getElementById('guide-none').style.display = "block";
+    });
+</script>
+}

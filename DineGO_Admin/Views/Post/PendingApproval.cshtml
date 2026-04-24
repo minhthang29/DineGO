@@ -1,0 +1,112 @@
+@model List<Core.Models.Post>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Bài viết chờ duyệt";
+}
+
+<div class="mb-6">
+    <h2 class="text-3xl font-bold text-white mb-4">Bài viết chờ duyệt</h2>
+    
+    @if (Model.Any())
+    {
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <i class="fas fa-clock text-yellow-600 mr-2"></i>
+                <span class="text-yellow-800 font-semibold">Có @Model.Count bài viết đang chờ duyệt</span>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="space-y-6">
+    @if (Model != null && Model.Any())
+    {
+        foreach (var post in Model)
+        {
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="md:flex">
+                    <!-- Image Section -->
+                    @if (!string.IsNullOrEmpty(post.post_image))
+                    {
+                        var firstImage = post.post_images_json?.FirstOrDefault() ?? post.post_image;
+                        <div class="md:w-1/3">
+                            <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/posts/thumb_@firstImage" alt="Post Image" class="w-full h-48 md:h-full object-cover">
+                        </div>
+                    }
+                    
+                    <!-- Content Section -->
+                    <div class="p-6 @(string.IsNullOrEmpty(post.post_image) ? "w-full" : "md:w-2/3")">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                                    @(post.customer?.cus_name?.FirstOrDefault().ToString().ToUpper() ?? "U")
+                                </div>
+                                <div class="ml-3">
+                                    <p class="font-semibold text-gray-900">@(post.customer?.cus_name ?? "Unknown User")</p>
+                                    <p class="text-sm text-gray-500">@post.post_created_date.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                            
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                                Chờ duyệt
+                            </span>
+                        </div>
+                        
+                        <!-- Content -->
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">@(post.post_title ?? "Không có tiêu đề")</h3>
+                        <p class="text-gray-600 mb-4">@post.post_content</p>
+                        
+                        <!-- Stats -->
+                        <div class="flex items-center space-x-6 text-sm text-gray-500 mb-6">
+                            <div class="flex items-center">
+                                <i class="fas fa-heart text-red-500 mr-1"></i>
+                                <span>@(post.post_like_count ?? 0) lượt thích</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-comment text-blue-500 mr-1"></i>
+                                <span>@(post.post_comment_count ?? 0) bình luận</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex space-x-3">
+                            <form action="@Url.Action("Approve", new { id = post.post_id })" method="post" class="inline">
+                                <button type="submit" 
+                                        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-medium"
+                                        onclick="return confirm('Bạn có chắc muốn duyệt bài viết này?')">
+                                    <i class="fas fa-check mr-2"></i>Duyệt bài viết
+                                </button>
+                            </form>
+                            
+                            <a href="@Url.Action("Details", new { id = post.post_id })" 
+                               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium">
+                                <i class="fas fa-eye mr-2"></i>Xem chi tiết
+                            </a>
+                            
+                            <form action="@Url.Action("Delete", new { id = post.post_id })" method="post" class="inline">
+                                <button type="submit" 
+                                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition font-medium"
+                                        onclick="return confirm('Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác!')">
+                                    <i class="fas fa-trash mr-2"></i>Xóa bài viết
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center py-12">
+            <i class="fas fa-check-circle text-6xl text-green-300 mb-4"></i>
+            <p class="text-xl text-gray-500">Không có bài viết nào chờ duyệt</p>
+            <p class="text-gray-400 mb-6">Tất cả bài viết đều đã được xử lý</p>
+            <a href="@Url.Action("Index")" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-arrow-left mr-2"></i>Quay lại danh sách bài viết
+            </a>
+        </div>
+    }
+</div>

@@ -1,0 +1,117 @@
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<div class="container mt-5" style="max-width: 900px;">
+    <div class="row">
+        <!-- Bên trái: QR + thông tin ngân hàng -->
+        <div class="col-md-5">
+            <div class="border p-3 rounded bg-white">
+                <h5 class="fw-bold">Thanh toán bằng chuyển khoản</h5>
+                <div class="d-flex flex-column gap-2">
+                    <span><strong>Nhà hàng:</strong> @Model.restaurant.res_name</span>
+                    <span><strong>Tên khách hàng:</strong> @Model.customer.cus_name</span>
+                    <span><strong>Tên bàn:</strong> @Model.table.table_name</span>
+                    <span><strong>Số lượng:</strong> @Model.table.table_seat người</span>
+                    <span><strong>Phí giữ bàn:</strong> @Model.restaurant.res_reservation_fee.ToString("N0") VND</span>
+                    <span><strong>Thời gian:</strong> <span id="countdown"
+                            class="text-danger fw-bold">--:--</span></span>
+                </div>
+                <div class="text-center my-3" id="qrContainer" data-amount="@Model.restaurant.res_reservation_fee"
+                    data-description="@Model.restaurant.res_name @Model.reser_id" data-reserid="@Model.reser_id"
+                    data-createdat="@Model.reser_create_at.ToString("o")">
+                    <img src="https://img.vietqr.io/image/ACB-20051417-compact2.png?amount=@Model.restaurant.res_reservation_fee&addInfo=@Model.restaurant.res_name%20 @Model.reser_id&accountName=TRAN MINH THANG"
+                        class="img-fluid" alt="QR Code Thanh Toán">
+                </div>
+                <div id="expiredMessage" class="alert alert-danger text-center mt-3 d-none">
+                    ⏰ Đã hết thời gian thanh toán.<br>Vui lòng đặt lại!
+                </div>
+            </div>
+        </div>
+
+        <!-- Bên phải: Hướng dẫn -->
+        <div class="col-md-7">
+            <div class="border p-4 rounded bg-white h-100">
+                <h5 class="fw-bold text-danger">Lưu ý: Bạn cần thanh toán trước khi thời gian kết thúc.</h5>
+                <h5 class="fw-bold">Thực hiện theo hướng dẫn sau để thanh toán:</h5>
+                <ol class="ps-3">
+                    <li>Mở ứng dụng <strong>Mobile Banking</strong> của ngân hàng.</li>
+                    <li>Chọn <strong>"Thanh Toán"</strong> và quét mã QR tại đây.</li>
+                    <li>
+                        Xem thông tin và nội dung chuyển khoản, nếu hợp lệ nhấn thanh toán.
+                    </li>
+                    <li>
+                        Sau khi thanh toán thành công, việc đặt bàn đã hoàn tất! <br> Chúc bạn có một buổi ăn vui vẻ
+                        cùng người thân!
+                    </li>
+                </ol>
+                <a href="@Url.Action("OrderHistory", "Customer")" class="btn btn-danger mt-3">Quay lại</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* <script src="~/client/js/payment.js" asp-append-version="true"></script> *@
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const reserId = parseInt(document.getElementById("qrContainer").dataset.reserid);
+    const reservationCreatedAt = new Date(document.getElementById("qrContainer").dataset.createdat);
+    const countdownElement = document.getElementById("countdown");
+
+    // --- Hàm đếm ngược 10 phút ---
+    function getRemainingSeconds() {
+        const now = new Date();
+        const deadline = new Date(reservationCreatedAt.getTime() + 10 * 60 * 1000);
+        const diff = Math.floor((deadline - now) / 1000);
+        return diff > 0 ? diff : 0;
+    }
+
+    let countdown = getRemainingSeconds();
+
+    function updateCountdown() {
+        const minutes = Math.floor(countdown / 60);
+        const seconds = countdown % 60;
+        countdownElement.textContent =
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        if (countdown === 0) {
+            clearInterval(countdownTimer);
+            clearInterval(paidChecker);
+            document.getElementById("qrContainer").style.display = "none";
+            document.getElementById("expiredMessage").classList.remove("d-none");
+
+            // Hết hạn thì gọi Cancel API
+            fetch(`/Reservation/CancelIfExpired?reser_id=${reserId}`, { method: "PUT" });
+
+            return;
+        }
+        countdown--;
+    }
+
+    // --- Hàm check thanh toán ---
+    async function checkPaid(reserId) {
+        try {
+            const response = await fetch(`/Reservation/CheckPaid?reser_id=${reserId}`);
+            const result = await response.json();
+
+            if (result.success) {
+                showNotification(`Đặt bàn thành công.`, "success");
+                showGlobalLoader();
+                setTimeout(() => {
+                    window.location.href = "/Customer/OrderHistory";
+                }, 3000);
+            } else {
+                console.log("⌛ " + result.message);
+            }
+        } catch (err) {
+            console.error("❌ Lỗi checkPaid:", err);
+        }
+    }
+
+
+    // --- Timer ---
+    const countdownTimer = setInterval(updateCountdown, 1000);
+    const paidChecker = setInterval(() => checkPaid(reserId), 30000);
+
+});
+</script>

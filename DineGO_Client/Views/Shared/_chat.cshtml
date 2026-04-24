@@ -1,0 +1,86 @@
+@* _chat.cshtml *@
+<link rel="stylesheet" href="~/css/chat.css" />
+
+<!-- 🔘 Nút chat trên thanh menu -->
+<button id="chat-icon-btn" class="chat-menu-icon" title="Đoạn chat">
+    <i class="bi bi-chat-dots-fill fs-5" style="padding: 5px"></i>
+</button>
+
+<!-- 📋 Danh sách đoạn chat -->
+<!-- 📋 Danh sách đoạn chat -->
+<div id="chat-list-panel" class="chat-list-panel d-none">
+    <div class="chat-list-header">
+        <span>Đoạn chat</span>
+        <button id="close-chat-list">×</button>
+    </div>
+
+    <!-- 🔍 Thanh tìm kiếm (giữ nguyên) -->
+    <div class="chat-search-box px-2 pb-2">
+        <input type="text" id="friend-search-input" placeholder="Tìm bạn để kết bạn..." />
+        <div id="friend-search-result" class="search-result-list mt-2"></div>
+    </div>
+
+    <!-- 🔁 Chuyển tab Đặt DƯỚI thanh tìm kiếm -->
+    <div class="chat-tab-header px-2 pb-1">
+        <button class="btn-tab active" id="tab-friend">Bạn bè</button>
+        <button class="btn-tab" id="tab-resowner">Nhà hàng</button>
+    </div>
+
+    <!-- ✅ Danh sách bạn bè -->
+    <div class="chat-list-body" id="chat-list-body">
+        <!-- Friend list -->
+    </div>
+
+    <!-- ✅ Danh sách ResOwner -->
+    <div class="chat-list-body d-none" id="chat-list-resowner-body">
+        <!-- ResOwner list -->
+    </div>
+</div>
+
+<!-- 💬 Khung chat mini -->
+<div id="chat-box" class="chat-box chat-hidden" data-id="">
+    <div class="chat-header">
+        <span id="chat-user-name">Đang chat</span>
+        <span id="chat-user-status" class="dot-offline" title="Offline"></span>
+
+        <!-- 🔘 Nút gọi video đặt bên phải -->
+        <button id="start-video-btn" class="btn-call" title="Gọi video">
+            <i class="bi bi-camera-video-fill"></i>
+        </button>
+
+        <button id="chat-close-btn">×</button>
+    </div>
+
+    <!-- 🔔 Thanh chấp nhận kết bạn -->
+    <div id="accept-friend-bar" class="text-center bg-light py-2 border-bottom d-none">
+        <button class="btn btn-success btn-sm" id="accept-friend-btn">✔️ Chấp nhận lời mời kết bạn</button>
+    </div>
+
+    <div class="chat-content" id="chat-content">
+        <p><i>Chưa có tin nhắn...</i></p>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="chat-message-input" placeholder="Nhập tin nhắn..." />
+        <button id="chat-send-btn">Gửi</button>
+    </div>
+</div>
+<!-- 💬 Khung chat mini cho ResOwner -->
+<div id="chat-box-resowner" class="chat-box chat-hidden" data-id="">
+    <div class="chat-header">
+        <span id="chat-resowner-name">Đang chat với nhà hàng</span>
+        <button id="chat-close-btn-ro">×</button>
+    </div>
+    <div class="chat-content" id="chat-content-ro">
+        <p><i>Chưa có tin nhắn...</i></p>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="chat-message-input-ro" placeholder="Nhập tin nhắn..." />
+        <button id="chat-send-btn-ro">Gửi</button>
+    </div>
+</div>
+@Html.Partial("_VideoCall")
+
+<audio id="chat-sound" src="https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3"
+    preload="auto"></audio>
+<audio id="call-ringtone" src="https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3"
+    preload="auto" loop></audio>

@@ -1,0 +1,73 @@
+@model List<Core.Models.Client.Custom.AdRegistrationResponseDto>
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Quảng cáo đã hết hạn";
+}
+
+<div class="col-md-12">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Quảng cáo đã hết hạn</h4>
+            <div>
+                <a href="@Url.Action("ActiveAds", "RestaurantOwner")" class="btn btn-light btn-sm me-2">
+                    <i class="bi bi-play-circle"></i> Quảng cáo đang chạy
+                </a>
+                <a href="@Url.Action("AvailableSlots", "RestaurantOwner")" class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-circle"></i> Slot có thể thuê
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-danger">❗ Bạn chưa có quảng cáo hết hạn nào.</div>
+            }
+            else
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3 text-danger">Danh sách quảng cáo đã hết hạn</h5>
+
+                        <!-- Trượt ngang -->
+                        <div class="d-flex flex-row flex-nowrap overflow-auto pb-2" style="gap: 1rem;">
+                            @foreach (var ad in Model)
+                            {
+                                <div class="card shadow-sm border-0" style="min-width: 240px; flex: 0 0 auto;">
+                                    <!-- Ảnh click mở link -->
+                                    <a href="@ad.ad_link_url" target="_blank">
+                                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/ads/thumb_@ad.ad_image_url"
+                                             onerror="this.onerror=null; this.src='/common/images/banner.jpg';"
+                                             class="card-img-top"
+                                             style="height: 120px; object-fit: cover; cursor: pointer;"
+                                             alt="Ad image" />
+                                    </a>
+
+                                    <div class="card-body">
+                                        <h6 class="card-title text-danger">@ad.slot_name</h6>
+
+                                        <p class="mb-1 small text-muted">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            Bắt đầu: @ad.start_date.ToString("dd/MM/yyyy HH:mm")
+                                        </p>
+                                        <p class="mb-1 small text-muted">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            Kết thúc: @ad.end_date.ToString("dd/MM/yyyy HH:mm")
+                                        </p>
+
+                                        <!-- Badge trạng thái -->
+                                        <div class="alert alert-light text-center py-1 px-2 mt-2 mb-0 border border-danger">
+                                            <span class="small fw-bold text-danger">
+                                                <i class="bi bi-x-circle-fill me-1"></i> ĐÃ HẾT HẠN
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+@{
+    var success = TempData["SuccessMessage"] as string;
+    var error = TempData["ErrorMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(success))
+{
+    <div class="notification-box success" role="alert">
+        <i class="bi bi-check-circle-fill text-success"> </i>
+        @success
+        <div class="notification-progress"></div>
+    </div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="notification-box error" role="alert">
+        @error
+        <div class="notification-progress"></div>
+    </div>
+}

@@ -1,0 +1,339 @@
+@using Microsoft.AspNetCore.Http
+@using Core.Models.Client.Custom
+@using System.Text.Json
+@model List<RestaurantWithFoodsViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+@using Microsoft.AspNetCore.Http
+@{
+    var sessAddr = Context.Session.GetString("USER_LOCATION");
+    
+}
+
+<!-- Banner -->
+<section class="banner-food">
+    <img src="/common/images/banner.jpg" alt="Restaurant Banner" class="banner-img">
+    <div class="banner-content">
+        <h1>Các món ăn ngon hiện có</h1>
+        <p>Vị ngon trên từng ngón tay.</p>
+        <a href="#menu-section" class="btn btn-order-food btn-lg mt-3">Đặt món ngay</a>
+    </div>
+</section>
+
+<!-- ... phần banner, filter ... -->
+<section id="menu-section" class="container py-5">
+    <!-- Tìm món -->
+    <form class="row g-3 align-items-end mb-5" asp-action="Search" method="get">
+        <!-- Địa chỉ người dùng + Nút tìm kiếm nâng cao -->
+        <div class="col-12 mb-3">
+            <div class="p-3 border border-2 rounded-3 bg-white">
+                <div class="row align-items-center g-2">
+                    <!-- Nút chọn vị trí -->
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal"
+                            data-bs-target="#mapModal">
+                            📍 Chọn vị trí
+                        </button>
+                    </div>
+
+                    <!-- Ô nhập địa chỉ -->
+                    <div class="col-md-6">
+                        <input type="text" id="userAddress" name="userAddress" class="form-control"
+                            placeholder="Vị trí của bạn trên bản đồ" value="@(!string.IsNullOrEmpty(Context.Request.Query["userAddress"]) 
+                                                                                                                                                          ? Context.Request.Query["userAddress"] 
+                                                                                                                                                          : sessAddr)" />
+                    </div>
+
+                    <!-- Nút mở rộng tìm kiếm -->
+                    <div class="col-md-3 text-md-end">
+                        <button class="btn btn-outline-danger w-100" type="button" id="toggleSearch">
+                            🔍 Tìm kiếm nâng cao
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Map -->
+                <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="mapModalLabel">Chọn vị trí của bạn</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Đóng"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="map" style="height: 500px;"></div>
+                                <p class="mt-2">Vị trí đã chọn: <span id="selectedLocation">Chưa chọn</span></p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="province" class="form-label">Chọn Tỉnh/Thành phố</label>
+                                <select id="province" class="form-select" onchange="loadDistricts()">
+                                    <option value="">-- Tỉnh/Thành phố --</option>
+                                </select>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button id="btnResetLocation" type="button"
+                                    class="btn btn-outline-secondary btn-sm mt-2">
+                                    📍 Chọn vị trí hiện tại
+                                </button>
+                                
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-danger" id="confirmLocation">Xác nhận</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Nhóm tìm kiếm nâng cao -->
+        <div id="advancedSearch" class="row g-3 align-items-end" style="display: none;">
+            <!-- Tên món -->
+            <div class="col-md-3">
+                <label for="searchName" class="form-label">Tên món ăn</label>
+                <input type="text" class="form-control" id="searchName" name="keyword" placeholder="Nhập tên món..."
+                    value="@(Context.Request.Query["keyword"])">
+            </div>
+
+            <!-- Nhà hàng -->
+            <div class="col-md-3">
+                <label for="searchRestaurant" class="form-label">Nhà hàng</label>
+                <input type="text" class="form-control" id="searchRestaurant" name="restaurantName"
+                    placeholder="Nhập tên nhà hàng..." value="@(Context.Request.Query["restaurantName"])">
+            </div>
+
+            <!-- Giá từ -->
+            <div class="col-md-2">
+                <label for="minPrice" class="form-label">Giá từ</label>
+                <input type="number" class="form-control" id="minPrice" name="minPrice" placeholder="1000 VND"
+                    value="@(Context.Request.Query["minPrice"])">
+            </div>
+
+            <!-- Giá đến -->
+            <div class="col-md-2">
+                <label for="maxPrice" class="form-label">Giá đến</label>
+                <input type="number" class="form-control" id="maxPrice" name="maxPrice" placeholder="1,000,000 VND"
+                    value="@(Context.Request.Query["maxPrice"])">
+            </div>
+
+            <!-- Nút Lọc + Xóa -->
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-danger">Lọc</button>
+                <a href="@Url.Action("Index", "Food")" class="btn btn-outline-secondary">Xóa lọc</a>
+            </div>
+        </div>
+
+
+        <input type="hidden" id="userLat" name="userLat" />
+        <input type="hidden" id="userLng" name="userLng" />
+
+
+    </form>
+
+    <!-- Load thêm trang khi quá 3 nhà hàng -->
+    @{
+        var groupIndex = 0;
+        var totalGroups = Model.Count;
+    }
+
+    @foreach (var group in Model)
+    {
+        var isVisible = groupIndex < 3;
+        var containerClass = isVisible ? "restaurant-group" : "restaurant-group d-none";
+        <div class="@containerClass mb-5" data-group-index="@groupIndex">
+            <div class="row align-items-center mb-4">
+                <div class="col-md-2 text-center">
+                    <a href="@Url.Action("Details", "Restaurant", new { id = group.ResId })">
+                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/restaurants/thumb_@group.ResImages.FirstOrDefault()"
+                            onerror="this.onerror=null; this.src='/common/images/banner.jpg';"
+                            class="rounded-circle shadow-sm"
+                            style="width: 100px; height: 100px; object-fit: cover; cursor: pointer; background-position: center;" />
+
+
+                    </a>
+                </div>
+                <div class="col-md-10">
+                    <h4 class="mb-1">
+                        <a href="@Url.Action("Details", "Restaurant", new { id = group.ResId })"
+                            class="text-danger text-decoration-none fw-bold">
+                            @group.ResName
+                        </a>
+                    </h4>
+
+                    <p class="text-muted mb-0"><i class="bi bi-geo-alt-fill"></i> @group.ResAddress</p>
+                    @if (group.DistanceKm > 0)
+                    {
+                        <p class="text-danger mb-0">
+                            <i class="bi bi-signpost-2"></i> Cách bạn: @group.DistanceKm.ToString("0.0") km
+                        </p>
+                    }
+
+                </div>
+            </div>
+
+
+
+            <div class="owl-carousel owl-theme">
+                @foreach (var food in group.Foods)
+                {
+                    <div class="item">
+                        <div class="card card-food">
+                            <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/foods/thumb_@food.FoodImages.FirstOrDefault()"
+                                onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/6/6d/Good_Food_Display_-_NCI_Visuals_Online.jpg';"
+                                class="card-img-top" alt="@food.FoodName" />
+
+
+
+                            <div class="card-body text-center">
+                                <h5>@food.FoodName</h5>
+                                <p>@food.FoodPrice.ToString("#,##0", System.Globalization.CultureInfo.InvariantCulture) VND</p>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="/Food/Details/@food.FoodId" class="btn btn-outline-danger">Xem chi tiết</a>
+
+                                    @if (food.FoodStatus == 1)
+                                    {
+                                        <form asp-controller="Cart" asp-action="Add" method="post">
+                                            <input type="hidden" name="foodId" value="@food.FoodId" />
+                                            <input type="hidden" name="restaurantId" value="@group.ResId" />
+                                            <input type="hidden" name="quantity" value="1" />
+                                       <button type="button" 
+        class="btn btn-warning btn-add-cart" 
+        data-food-id="@food.FoodId">
+    Thêm vào giỏ
+</button>
+
+                                        </form>
+                                    }
+                                    else if (food.FoodStatus == 0)
+                                    {
+                                        <span class="badge bg-danger align-self-center">Hết món</span>
+                                    }
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        groupIndex++;
+    }
+    @if (totalGroups > 3)
+    {
+        <div class="text-center mt-4 view-more-btn">
+            <button id="loadMoreBtn" class="btn btn-danger">Xem thêm</button>
+        </div>
+    }
+
+
+
+</section>
+<script>
+    var restaurantMarkers = @Html.Raw(Json.Serialize(ViewBag.RestaurantMarkers));
+    var cart = @Html.Raw(Json.Serialize(ViewBag.Cart));
+</script>
+<script src="/client/js/food.js" asp-append-version="true"></script>
+@section Scripts {
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".btn-add-cart").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const foodId = btn.getAttribute("data-food-id");
+            
+            try {
+                const response = await fetch("/Cart/AddJson", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    },
+                    body: JSON.stringify({ foodId: foodId, quantity: 1 })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Lỗi thêm giỏ hàng");
+                }
+
+                const result = await response.json();
+                
+                // ✅ Hiển thị thông báo (toast / alert / badge giỏ hàng)
+                showNotification("✅ Đã thêm món vào giỏ hàng!", "success");
+
+                // (Optional) cập nhật số lượng giỏ trên navbar
+                const cartCountEl = document.getElementById("cart-count");
+                if (cartCountEl) {
+                    cartCountEl.textContent = result.totalItems;
+                }
+
+            } catch (err) {
+                console.error(err);
+                showNotification("❌ Không thể thêm vào giỏ!, bạn cần đăng nhập trước khi thêm món vào giỏ!", "danger");
+            }
+        });
+    });
+});
+
+// Hàm thông báo nhỏ
+function showNotification(message, type = "info") {
+    const div = document.createElement("div");
+    div.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+    div.style.zIndex = 1050;
+    div.textContent = message;
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 2500);
+}
+</script>
+
+    <script>
+        $(document).ready(function () {
+            console.log("✅ OwlCarousel init in Razor");
+            $(".owl-carousel").owlCarousel({
+                items: 4,
+                margin: 10,
+                nav: true,
+                dots: true
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const addressInput = document.getElementById("userAddress");
+            const form = addressInput?.closest("form");
+
+         window.setUserAddress = function (value) {
+        if (addressInput) {
+            addressInput.value = value;
+        }
+    };
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy restaurantId hiện tại trong cart (nếu có)
+            var cartRestaurantId = (cart && cart.length > 0 && cart[0].restaurantId) ? cart[0].restaurantId : 0;
+            console.log("Cart Restaurant ID:", cart);
+            // Lấy tất cả form thêm vào giỏ (dựa vào input name="restaurantId")
+            document.querySelectorAll('form input[name="restaurantId"]').forEach(function(input) {
+                var form = input.closest('form');
+                if (form) {
+                    form.addEventListener('submit', function (e) {
+                        var foodResId = parseInt(input.value);
+                        if (cartRestaurantId > 0 && foodResId > 0 && cartRestaurantId !== foodResId) {
+                            if (!confirm("Giỏ hàng của bạn đang chứa món từ nhà hàng khác. Bạn có muốn xóa giỏ hàng cũ để thêm món mới không?")) {
+                                e.preventDefault();
+                                return false;
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

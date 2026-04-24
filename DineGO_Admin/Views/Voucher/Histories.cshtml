@@ -1,0 +1,59 @@
+@model List<Core.Models.Client.Custom.CustomerPointHistoryWithName>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Lịch sử tích điểm";
+}
+
+<h2 class="text-2xl font-bold mb-6">Lịch sử tích điểm</h2>
+
+<div class="mb-6">
+    <a href="@Url.Action("Index", "Voucher")"
+       class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium 
+              text-white bg-gradient-to-r from-indigo-500 to-blue-600 
+              rounded-full shadow-md hover:from-indigo-600 hover:to-blue-700 
+              focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 transition">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách Voucher
+    </a>
+</div>
+
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Khách hàng</th>
+                <th class="px-6 py-3 text-left">Thay đổi</th>
+                <th class="px-6 py-3 text-left">Số dư sau</th>
+                <th class="px-6 py-3 text-left">Mô tả</th>
+                <th class="px-6 py-3 text-left">Ngày tạo</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @if (Model == null || !Model.Any())
+            {
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        Không có lịch sử nào.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var h in Model)
+                {
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <td class="px-6 py-4">@h.HistoryId</td>
+                        <td class="px-6 py-4 font-semibold">@h.CustomerName</td>
+                        <td class="px-6 py-4 @(h.ChangeAmount > 0 ? "text-green-600" : "text-red-600")">
+                            @(h.ChangeAmount > 0 ? $"+{h.ChangeAmount}" : h.ChangeAmount.ToString())
+                        </td>
+                        <td class="px-6 py-4">@h.BalanceAfter</td>
+                        <td class="px-6 py-4">@h.Description</td>
+                        <td class="px-6 py-4">@h.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

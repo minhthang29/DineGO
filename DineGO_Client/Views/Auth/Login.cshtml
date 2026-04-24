@@ -1,0 +1,55 @@
+<div class="login-background d-flex justify-content-center align-items-center" style="min-height: 100vh; padding: 15px;">
+  <div class="login-container d-flex flex-column flex-md-row shadow-lg p-4 rounded bg-white" style="max-width: 900px; width: 100%;">
+    <!-- Logo bên trái -->
+    <div class="login-logo d-flex justify-content-center align-items-center p-3" style="flex: 1; min-width: 200px;">
+      <img src="/common/images/logo_croped.png" alt="DineGO Logo" style="max-width: 100%; max-height: 250px;" />
+    </div>
+
+    <!-- Form đăng nhập bên phải -->
+    <div class="login-block flex-grow-1 p-3">
+      <h4 class="login-header text-center mb-4">ĐĂNG NHẬP VÀO DINEGO</h4>
+      @if (ViewBag.Error != null)
+      {
+        <div class="alert alert-danger text-center mt-3">
+          @ViewBag.Error
+        </div>
+      }
+      <form asp-controller="Auth" asp-action="Login" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group mb-3">
+          <input type="text" id="username" name="username" required placeholder="Tài Khoản" class="form-control" />
+        </div>
+        <div class="form-group mb-4">
+          <input type="password" id="password" name="password" required placeholder="Mật Khẩu" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block w-100 mb-3">Đăng nhập</button>
+
+        <div class="login-footer mb-2">
+          <a href="/Auth/ForgotPassword">Quên mật khẩu?</a>
+        </div>
+
+        <div class="text-center mb-2">
+          <div class="text-muted">hoặc</div>
+        </div>
+
+        <div id="g_id_onload"
+             data-client_id="843253528087-stj2ef19gnffnmd5id2bvvd9m6eplsvv.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse" data-auto_prompt="false">
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 10px;">
+          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
+               data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left">
+          </div>
+        </div>
+
+        <div class="login-footer text-center">
+          Chưa có tài khoản?
+          <a asp-controller="Auth" asp-action="Register"><strong>Đăng ký tài khoản ngay</strong></a>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+</div>

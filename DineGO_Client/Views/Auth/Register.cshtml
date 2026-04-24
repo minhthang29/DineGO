@@ -1,0 +1,255 @@
+@model Core.Models.Customer
+@{
+    ViewData["Title"] = "Register Page";
+}
+<div class="register-background d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="register-container d-flex flex-column flex-md-row shadow-lg p-4 rounded bg-white"
+        style="max-width: 900px; width: 100%;">
+        <!-- Logo bên trái -->
+        <div class="register-logo d-flex justify-content-center align-items-center p-3"
+            style="flex: 1; min-width: 200px;">
+            <img src="/common/images/logo_croped.png" alt="DineGO Logo" style="max-width: 100%; max-height: 250px;" />
+        </div>
+
+        <!-- Form đăng ký bên phải -->
+        <div class="register-block flex-grow-1 p-3">
+            <h4 class="text-center mb-4">ĐĂNG KÝ THÀNH VIÊN DINEGO</h4>
+            <form asp-controller="Auth" asp-action="Register" method="post">
+                <div class="form-group register-form-group mb-3">
+                    <label for="name" class="form-label">*Họ và tên</label>
+                    <input type="text" class="form-control" id="name" name="name" required placeholder="Họ và tên" />
+                    <div class="text-danger mt-1">@Html.ValidationMessage("name")</div>
+                </div>
+
+                <div class="form-group register-form-group mb-3 gender-group">
+                    <label class="form-label d-block">*Giới tính</label>
+
+                    <label class="custom-radio">
+                        <input type="radio" name="gender" id="genderMale" value="true" />
+                        <span class="radio-mark"></span>
+                        <span class="radio-label">Nam</span>
+                    </label>
+
+                    <label class="custom-radio">
+                        <input type="radio" name="gender" id="genderFemale" value="false" />
+                        <span class="radio-mark"></span>
+                        <span class="radio-label">Nữ</span>
+                    </label>
+
+                    <div class="text-danger mt-1">@Html.ValidationMessage("gender")</div>
+                </div>
+
+                <div class="form-group register-form-group mb-3">
+                    <label for="username" class="form-label">*Tài khoản</label>
+                    <input type="text" class="form-control" id="username" name="username" required
+                        placeholder="Tài khoản" />
+                    <div class="text-danger mt-1">@Html.ValidationMessage("username")</div>
+                </div>
+
+                <div class="form-group register-form-group mb-3">
+                    <label for="password" class="form-label">*Mật khẩu</label>
+                    <input type="password" class="form-control" id="password" name="password" required
+                        placeholder="Mật khẩu" />
+                    <div class="text-danger mt-1">@Html.ValidationMessage("password")</div>
+                </div>
+
+                <div class="form-group register-form-group mb-3">
+                    <label for="confirmPassword" class="form-label">*Xác nhận mật khẩu</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required
+                        placeholder="Xác nhận mật khẩu" />
+                    <div class="text-danger mt-1">@Html.ValidationMessage("confirmPassword")</div>
+                </div>
+
+                <div class="form-group register-form-group mb-3">
+                    <label for="email" class="form-label">*Email</label>
+                    <input type="text" class="form-control" id="email" name="email" required placeholder="Email" />
+                    <div class="text-danger mt-1">@Html.ValidationMessage("email")</div>
+                </div>
+                <div class="form-group register-form-group mb-3">
+                    <label for="otp" class="form-label">*Mã OTP</label>
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="otp" name="otp" placeholder="Nhập OTP" required>
+                        </div>
+                        <div class="col-sm-3 d-flex align-items-center">
+                            <button type="button" class="btn btn-danger w-100" id="btnSendOtp">Gửi OTP</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group register-form-group mb-3">
+                    <label for="phone" class="form-label">*Số điện thoại</label>
+                    <input type="text" class="form-control" id="phone" name="phone" required
+                        placeholder="Số điện thoại" />
+                    <div class="text-danger mt-1">@Html.ValidationMessage("phone")</div>
+                </div>
+
+                <div class="mb-3 d-flex align-items-center">
+                    <input type="checkbox" id="terms" name="terms" required class="me-2" />
+                    <label class="form-check-label" for="terms">Tôi đồng ý với <a href="/Term">điều khoản và điều
+                            kiện</a></label>
+                </div>
+
+                <p class="text-danger">@ViewBag.Error</p>
+                <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
+
+                <div class="register-footer text-center mt-3">
+                    Đã có tài khoản? <a asp-controller="Auth" asp-action="Login"><strong>Đăng nhập ngay</strong></a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.getElementById("btnSendOtp").addEventListener("click", async function () {
+            const email = document.getElementById("email").value;
+            if (!email) {
+                showNotification("Vui lòng nhập email trước khi gửi OTP", "danger");
+                return;
+            }
+
+            const btn = this;
+            const oldText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "...";
+
+            try {
+                const res = await fetch('@Url.Action("SendOtp", "Auth")', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "email=" + encodeURIComponent(email)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showNotification(data.message, "success");
+
+                    // 👇 Countdown theo backend trả về
+                    let countdown = data.retryAfter || 30; // fallback 30 nếu = 0
+                    btn.innerText = `Gửi lại (${countdown})`;
+
+                    const interval = setInterval(() => {
+                        countdown--;
+                        if (countdown > 0) {
+                            btn.innerText = `Gửi lại (${countdown})`;
+                        } else {
+                            clearInterval(interval);
+                            btn.disabled = false;
+                            btn.innerText = oldText;
+                        }
+                    }, 1000);
+                } else {
+                    showNotification(data.message, "danger");
+                    btn.disabled = false;
+                    btn.innerText = oldText;
+                }
+            } catch (err) {
+                showNotification("Có lỗi khi gửi OTP: " + err, "danger");
+                btn.disabled = false;
+                btn.innerText = oldText;
+            }
+        });
+    </script>
+}
+<style>
+    #btnSendOtp {
+        flex: 0 0 auto;
+        min-width: 100px;
+        /* cố định chiều rộng nút */
+        height: auto;
+        /* tránh nút cao bằng input */
+        align-self: center;
+        /* căn giữa theo chiều dọc so với input */
+        padding: 6px 12px;
+        /* giống input */
+        font-size: 0.9rem;
+    }
+
+    .gender-group {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        /* Khoảng cách giữa các label radio */
+    }
+
+    .custom-radio {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .custom-radio input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .custom-radio .radio-mark {
+        height: 18px;
+        width: 18px;
+        background-color: #eee;
+        border-radius: 50%;
+        border: 2px solid #999;
+        position: relative;
+    }
+
+    .custom-radio .radio-mark::after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    .custom-radio input[type="radio"]:checked~.radio-mark {
+        background-color: #C0392B;
+        border-color: #C0392B;
+    }
+
+    .custom-radio input[type="radio"]:checked~.radio-mark::after {
+        display: block;
+    }
+
+    .custom-radio .radio-mark::after {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: white;
+    }
+
+    /* Khoảng cách giữa nút và chữ */
+    .custom-radio .radio-label {
+        margin-left: 8px;
+    }
+
+    /* Responsive - Mobile adjustments */
+    @@media (max-width: 767.98px) {
+        .register-background {
+            padding: 15px;
+        }
+
+        .register-container {
+            padding: 16px !important;
+        }
+
+        .register-logo {
+            margin-bottom: 16px;
+        }
+
+        .register-logo img {
+            max-height: 180px;
+        }
+
+        .gender-group {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+</style>

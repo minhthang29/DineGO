@@ -1,0 +1,64 @@
+@model dynamic
+@{
+    var urlAction = ViewData["PaginationAction"] as string ?? "Index";
+    var urlController = ViewData["PaginationController"] as string ?? ViewContext.RouteData.Values["controller"]?.ToString();
+    int totalPages = Model.TotalPages;
+    int pageIndex = Model.PageIndex;
+}
+
+@if (totalPages > 1)
+{
+    <nav class="flex justify-center mt-6">
+        <ul class="inline-flex items-center -space-x-px">
+            <li>
+                <a href="@Url.Action(urlAction, urlController, new { pageIndex = pageIndex - 1 })"
+                   class="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 @(Model.HasPreviousPage ? "" : "pointer-events-none opacity-50")">
+                    &laquo;
+                </a>
+            </li>
+            @* Trang đầu tiên *@
+            <li>
+                <a href="@Url.Action(urlAction, urlController, new { pageIndex = 1 })"
+                   class="px-3 py-2 leading-tight border border-gray-300 @(pageIndex == 1 ? "bg-indigo-600 text-white" : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700")">
+                    1
+                </a>
+            </li>
+            @if (pageIndex > 4)
+            {
+                <li>
+                    <span class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300">...</span>
+                </li>
+            }
+            @for (int i = Math.Max(2, pageIndex - 1); i <= Math.Min(totalPages - 1, pageIndex + 1); i++)
+            {
+                <li>
+                    <a href="@Url.Action(urlAction, urlController, new { pageIndex = i })"
+                       class="px-3 py-2 leading-tight border border-gray-300 @(i == pageIndex ? "bg-indigo-600 text-white" : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700")">
+                        @i
+                    </a>
+                </li>
+            }
+            @if (pageIndex < totalPages - 3)
+            {
+                <li>
+                    <span class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300">...</span>
+                </li>
+            }
+            @if (totalPages > 1)
+            {
+                <li>
+                    <a href="@Url.Action(urlAction, urlController, new { pageIndex = totalPages })"
+                       class="px-3 py-2 leading-tight border border-gray-300 @(pageIndex == totalPages ? "bg-indigo-600 text-white" : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700")">
+                        @totalPages
+                    </a>
+                </li>
+            }
+            <li>
+                <a href="@Url.Action(urlAction, urlController, new { pageIndex = pageIndex + 1 })"
+                   class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 @(Model.HasNextPage ? "" : "pointer-events-none opacity-50")">
+                    &raquo;
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

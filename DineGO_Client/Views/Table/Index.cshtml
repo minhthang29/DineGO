@@ -1,0 +1,51 @@
+@model Core.Models.Client.Custom.CustomTableViewModel
+
+@{
+  Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+  ViewData["Title"] = "Tạo bàn";
+}
+
+@Html.Partial("CreateTable")
+@Html.Partial("DetailTable")
+<div class="sidebar">
+  <div class="flex-grow-1 p-4 bg-white">
+    <h2 class="fw-bold text-danger mb-4">Cài đặt bàn</h2>
+    <hr>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <!-- Label và select khu vực bên trái -->
+      <div class="d-flex align-items-center gap-2">
+        <label class="fw-semibold m-0">Khu vực:</label>
+        <select id="areaSelector">
+          @foreach (var area in Model.Areas)
+          {
+            <option value="@area.area_id">@area.area_name</option>
+          }
+        </select>
+      </div>
+
+      <!-- 2 nút bên phải -->
+      <div class="d-flex gap-3">
+        <button class="btn btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
+          + Tạo bàn
+        </button>
+      </div>
+    </div>
+
+    <div id="noTableMessage" class="alert alert-info text-center d-none" style="max-width: 400px;">
+      Khu vực này hiện tại chưa có bàn.
+    </div>
+
+    <div id="table-layout" class="p-2 d-grid grid-layout">
+      <!-- Các bàn sẽ hiển thị ở đây -->
+    </div>
+  </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            setupManageTablePage();
+        });
+    </script>
+}

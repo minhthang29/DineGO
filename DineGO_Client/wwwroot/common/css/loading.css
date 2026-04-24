@@ -1,0 +1,87 @@
+/* 👈 UPDATE: Global Loading Overlay (strict scope, tránh conflict icon) */
+#global-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 1999; /* Giảm nhẹ để tránh che icon fixed (nếu icon z-index >2000) */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none; /* 👈 THAY ĐỔI: Không block click icon dưới (chỉ visual overlay) */
+  transition: opacity 0.3s ease; /* Mượt khi show/hide */
+}
+
+#global-overlay.show { /* 👈 THÊM: Class riêng để show (thay vì body.loading) */
+  display: flex !important;
+  opacity: 1;
+}
+
+#global-loader {
+  z-index: 2000; /* Chỉ loader cao, overlay thấp hơn */
+  text-align: center;
+  pointer-events: auto; /* Chỉ loader block nếu cần */
+}
+
+body.loading {
+  overflow: hidden; /* Giữ nguyên, nhưng chỉ ảnh hưởng scroll (không icon) */
+}
+
+body.loading #global-overlay {
+  display: flex !important; /* Giữ nguyên trigger */
+}
+
+/* 👈 THÊM MỚI: Style cho text "Loading..." (strict selector) */
+#global-loader #loading-text { /* 👈 Scope chặt: Chỉ trong #global-loader */
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: inherit; /* 👈 THAY ĐỔI: Không override font global (tránh ảnh hưởng icon font) */
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#global-loader .loading-word {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+/* 👈 UPDATE: Animation dots (strict .dot trong #global-loader) */
+#global-loader .dot { /* 👈 Scope chặt: Chỉ dots trong loader */
+  display: inline-block;
+  margin: 0 1px;
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+
+#global-loader .dot:nth-child(1) { animation-delay: 0s; }
+#global-loader .dot:nth-child(2) { animation-delay: 0.2s; }
+#global-loader .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* 👈 THÊM MỚI: Bảo Vệ Icons Khác (override nếu conflict) */
+/* Bootstrap Icons (bi-) không bị animation */
+[class^="bi-"],
+[class*=" bi-"] {
+  animation: none !important; /* Ngăn xoay nếu leak */
+  transform: none !important;
+  display: inline-block !important; /* Đảm bảo visible */
+}
+
+/* Font Awesome (fas/fa-) */
+[class^="fas "],
+[class^="fa-"],
+[class*=" fas"],
+[class*=" fa-"] {
+  animation: none !important;
+  transform: none !important;
+  font-style: normal !important; /* Giữ font icon */
+  display: inline-block !important;
+}
+

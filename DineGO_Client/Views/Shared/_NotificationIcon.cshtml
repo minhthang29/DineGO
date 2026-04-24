@@ -1,0 +1,106 @@
+@using Microsoft.AspNetCore.Http
+@{
+    var token = Context.Session.GetString("token");
+    var cusId = Context.Session.GetInt32("cus_id");
+    var cusName = Context.Session.GetString("cus_name");
+}
+
+<!-- ICON NOTIFICATION -->
+<button id="notification-icon-btn" class="notification-menu-icon position-relative me-2" title="Thông báo">
+    <i class="fas fa-bell fa-lg bell-icon" style="padding: 5px"></i>
+    <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">0</span>
+</button>
+
+<!-- HỘP THOẠI THÔNG BÁO -->
+<div id="notification-panel" class="notification-panel d-none">
+    <div class="notification-header d-flex align-items-center px-3 py-2 border-bottom" style="background:#fff;">
+        <span class="fw-bold fs-5 flex-grow-1">Thông báo</span>
+        <div>
+            <button class="btn-noti-tab active" id="tab-all">Tất cả</button>
+            <button class="btn-noti-tab" id="tab-unread">Chưa đọc</button>
+        </div>
+        <button id="close-notification-panel" style="background: none; border: none; font-size: 20px;">×</button>
+    </div>
+    <div class="notification-section px-3 pt-2 pb-1 text-muted small" id="noti-new-label">Mới</div>
+    <div class="notification-list-body px-2" id="notification-list-body">
+        <!-- Thông báo mới sẽ được render ở đây -->
+        <div class="notification-item unread d-flex align-items-start gap-2">
+            <img src="/common/images/logo.png" class="rounded-circle" width="40" height="40" />
+            <div>
+                <div>Chào mừng bạn đến với DineGO.</div>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="badge bg-primary" style="font-size:10px;"><i class="fas fa-shield-alt"></i></span>
+                    <span class="text-secondary" style="font-size:12px;">1 phút</span>
+                </div>
+            </div>
+            <span class="ms-auto mt-2"><i class="fas fa-circle text-primary" style="font-size:10px;"></i></span>
+        </div>
+        <!-- Thông báo mẫu khác -->
+    </div>
+    <div class="notification-footer px-3 py-2 border-top text-center">
+        <a href="#" class="text-primary fw-semibold" style="text-decoration:none;">Xem thông báo trước đó</a>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="notification-toast" class="notification-toast d-none">
+    <div id="notification-toast-content"></div>
+    <button id="notification-toast-close" class="notification-toast-close">&times;</button>
+</div>
+
+<!-- Authentication Token Handler -->
+@if (TempData["SuccessMessage"] != null && !string.IsNullOrEmpty(token))
+{
+    <script>
+        // Lưu thông tin authentication vào localStorage khi đăng nhập thành công
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                localStorage.setItem("jwt_token", '@Html.Raw(token)');
+                localStorage.setItem("cus_id", '@cusId');
+                localStorage.setItem("cus_name", '@Html.Raw(cusName)');
+                
+                console.log('Authentication data saved to localStorage');
+                
+                // Có thể hiển thị notification welcome
+                showWelcomeNotification('@Html.Raw(cusName)');
+            } catch (error) {
+                console.error('Error saving authentication data:', error);
+            }
+        });
+
+        function showWelcomeNotification(customerName) {
+            // Hiển thị toast notification chào mừng
+            const toastContent = document.getElementById('notification-toast-content');
+            const toast = document.getElementById('notification-toast');
+            
+            if (toastContent && toast) {
+                toastContent.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Chào mừng ${customerName || 'bạn'} đến với DineGO!</span>
+                    </div>
+                `;
+                
+                toast.classList.remove('d-none');
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    toast.classList.add('d-none');
+                }, 5000);
+            }
+        }
+    </script>
+}
+@if(string.IsNullOrEmpty(token)){
+    <script>
+        // Xóa thông tin authentication nếu không có token
+        document.addEventListener('DOMContentLoaded', function() {
+            localStorage.removeItem("jwt_token");
+            localStorage.removeItem("cus_id");
+            localStorage.removeItem("cus_name");
+            console.warn('Authentication data cleared due to missing token');
+        });
+    </script>
+}
+
+<link rel="stylesheet" href="~/common/css/notificationIcon.css">

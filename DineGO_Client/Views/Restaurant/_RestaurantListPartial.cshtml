@@ -1,0 +1,35 @@
+@model List<Core.Models.Restaurant>
+
+<div class="restaurant-container">
+    @foreach (var restaurant in Model)
+    {
+        <a href="@Url.Action("Details", "Restaurant", new { id = restaurant.res_id })" class="restaurant-card-link">
+            <div class="restaurant-card">z
+                <img src="@(restaurant.res_images_json != null && restaurant.res_images_json.Count > 0 ? Url.Content("~/client/images/" + restaurant.res_images_json.First()) : Url.Content("~/common/images/banner.jpg"))"
+                    alt="Restaurant Image" class="restaurant-image">
+                <div class="restaurant-content">
+                    <h3 class="restaurant-name">@restaurant.res_name</h3>
+                    <p class="restaurant-address">@restaurant.res_address</p>
+                    <div class="restaurant-info">
+                        @{
+                            var rate = restaurant.res_rate ?? 0;
+                            int fullStars = (int)Math.Floor(rate);
+                            double rateValue = Convert.ToDouble(rate);
+                            bool hasHalfStar = (rateValue - fullStars) >= 0.5;
+                            int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+                            var starHtml = new System.Text.StringBuilder();
+                            for (int i = 0; i < fullStars; i++) { starHtml.Append("★"); }
+                            if (hasHalfStar) { starHtml.Append("⯨"); }
+                            for (int i = 0; i < emptyStars; i++) { starHtml.Append("☆"); }
+                        }
+                        <span class="rating">@Html.Raw(starHtml.ToString())</span>
+
+                        <span class="price">@restaurant.res_reservation_fee VNĐ</span>
+                    </div>
+                    <button class="btn-book">Đặt chỗ ngay</button>
+                </div>
+            </div>
+        </a>
+    }
+</div>

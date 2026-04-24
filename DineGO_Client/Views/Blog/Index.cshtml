@@ -1,0 +1,72 @@
+@model List<Core.Models.Blog>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="blog-container">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="container my-4">
+                        <h3 class="mb-4">Xem nhiều nhất tháng</h3>
+                        <div class="owl-carousel owl-theme">
+                            @foreach (var blog in Model)
+                            {
+                                <div class="carousel-card">
+                                    <img src="@(string.IsNullOrEmpty(blog.blog_image) ? "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0" : "https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/blogs/thumb_" + blog.blog_image)"
+                                        alt="@blog.blog_title">
+                                    <p>@blog.blog_title</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="container">
+                        <h3 class="mb-4">Blog mới</h3>
+                        <div class="row">
+                            @foreach (var blog in Model)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex blog-item-short">
+                                        <img src="@(string.IsNullOrEmpty(blog.blog_image) ? "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0" : "https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/blogs/thumb_" + blog.blog_image)"
+                                            alt="@blog.blog_title" class="me-3" style="width: 100px; height: 100px !important; object-fit: cover;">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                <a href="@Url.Action("ViewBlogDetail", "Blog", new { id = blog.blog_id })">
+                                                    @blog.blog_title
+                                                </a>
+                                            </h6>
+                                            <p class="mb-1" style="font-size: 13px;">@blog.blog_date.ToString("dd/MM/yyyy")</p>
+                                            <div class="blog-content-short">
+                                                @Html.Raw(blog.blog_information)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <hr>
+                }
+                else
+                {
+                    <div class="text-center">
+                        <h4>Chưa có bài blog nào!</h4>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-md-3">
+            <h3 class="mt-5">Từ khóa</h3>
+            <div class="keywords">
+                <a href="#" class="btn btn-sm btn-outline-secondary">Kinh nghiệm mở quán</a>
+                <a href="#" class="btn btn-sm btn-outline-secondary">Công thức món ăn</a>
+                <a href="#" class="btn btn-sm btn-outline-secondary">Marketing nhà hàng</a>
+            </div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="~/client/css/blog.css">

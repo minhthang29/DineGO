@@ -1,0 +1,47 @@
+@model (int postId, int currentEmotion)
+
+<div class="reaction-wrapper" onmouseleave="hideReactions(this)">
+    <button class="main-reaction-btn @GetReactionClass(Model.currentEmotion)" id="main-btn-@Model.postId"
+        data-current-type="@Model.currentEmotion" onmouseenter="showReactions(@Model.postId, this)">
+        @GetReactionLabel(Model.currentEmotion)
+    </button>
+
+    <div class="reaction-menu" id="reaction-menu-@Model.postId">
+        <button onclick="submitReactionAjax(1, @Model.postId, '👍 Thích', this)">👍</button>
+        <button onclick="submitReactionAjax(2, @Model.postId, '❤️ Yêu thích', this)">❤️</button>
+        <button onclick="submitReactionAjax(3, @Model.postId, '😆 Haha', this)">😆</button>
+        <button onclick="submitReactionAjax(4, @Model.postId, '😮 Wow', this)">😮</button>
+        <button onclick="submitReactionAjax(5, @Model.postId, '😢 Buồn', this)">😢</button>
+        <button onclick="submitReactionAjax(6, @Model.postId, '😡 Phẫn nộ', this)">😡</button>
+    </div>
+</div>
+
+@functions {
+    string GetReactionLabel(int type)
+    {
+        return type switch
+        {
+            1 => "👍 Thích",
+            2 => "❤️ Yêu thích",
+            3 => "😆 Haha",
+            4 => "😮 Wow",
+            5 => "😢 Buồn",
+            6 => "😡 Phẫn nộ",
+            _ => "👍 Thích"
+        };
+    }
+
+    string GetReactionClass(int type)
+    {
+        return type switch
+        {
+            1 => "btn-reaction like",
+            2 => "btn-reaction love",
+            3 => "btn-reaction haha",
+            4 => "btn-reaction wow",
+            5 => "btn-reaction sad",
+            6 => "btn-reaction angry",
+            _ => "btn-reaction default"
+        };
+    }
+}

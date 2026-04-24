@@ -1,0 +1,51 @@
+@{
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+    ViewData["Title"] = "Thông tin nhà hàng";
+    var res = ViewBag.Restaurant as Core.Models.Restaurant;
+}
+
+<div class="card shadow-lg border-0">
+    <div class="row g-0">
+        <!-- Ảnh -->
+        <div class="col-md-5">
+            <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/restaurants/full_@res.res_images_json.FirstOrDefault()"
+                 class="img-fluid rounded-start w-100 h-100 object-fit-cover"
+                 onerror="this.onerror=null;this.src='/client/images/logo.jpg';" alt="Ảnh nhà hàng" />
+        </div>
+
+        <!-- Nội dung -->
+        <div class="col-md-7">
+            <div class="card-body p-4">
+                <h2 class="fw-bold text-danger mb-3">@res.res_name</h2>
+
+                <p><strong>📍 Địa chỉ:</strong> @res.res_address</p>
+                <p><strong>📞 Điện thoại:</strong> @res.res_phone</p>
+                <p><strong>📧 Email:</strong> @res.res_email</p>
+                <p><strong>💬 Mô tả:</strong> @res.res_description</p>
+                <hr />
+
+                <p><strong>📌 Phí giữ bàn:</strong> @(res?.res_reservation_fee?.ToString("#,0") ?? "0") VND</p>
+                <p><strong>🕒 Giờ mở cửa:</strong> @(res?.res_open_time?.ToString(@"hh\:mm") ?? "--:--") - @(res?.res_close_time?.ToString(@"hh\:mm") ?? "--:--")</p>
+
+                <p><strong>💰 Giá trị đơn hàng tối thiểu:</strong> @(res?.res_price_order_min.ToString("#,0") ?? "0") VND</p>
+                <p><strong>💰 Giá trị đơn hàng tối đa:</strong> @(res?.res_price_order_max.ToString("#,0") ?? "0") VND</p>
+
+                <p><strong>🍽️ Số lượng tối đa mỗi món:</strong> @(res?.res_quantity_order_max ?? 0)</p>
+                <p><strong>⏳ Đặt món trước khi đóng cửa:</strong> @(res?.res_last_order_minutes ?? 0) phút</p>
+
+                <p><strong>⭐ Đánh giá:</strong> @(res?.res_rate?.ToString("0.0") ?? "0") / 5 (@res.res_rate_count lượt)</p>
+
+                <div class="mt-4">
+                    <span class="badge @(res.res_is_use ? "bg-success" : "bg-secondary")">
+                        @(res.res_is_use ? "Đang mở cửa" : "Tạm đóng")
+                    </span>
+                </div>
+
+                <div class="text-start mt-4">
+                    <a asp-action="UpdateProfileRestaurant" asp-controller="RestaurantOwner" asp-route-id="@res.res_id"
+                       class="btn btn-warning px-4 fw-bold">✏️ Cập nhật thông tin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

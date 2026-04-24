@@ -1,0 +1,133 @@
+@model Core.Common.PaginatedList<Core.Models.Verification>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Danh sách xác thực";
+    ViewData["PaginationAction"] = "Index";
+    ViewData["PaginationController"] = "Verification";
+}
+
+<h2 class="text-2xl font-bold mb-6">Danh sách xác thực</h2>
+
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Nhà hàng</th>
+                <th class="px-6 py-3 text-left">Mã số thuế</th>
+                <th class="px-6 py-3 text-left">Giấy phép KD</th>
+                <th class="px-6 py-3 text-left">Tài liệu</th>
+                <th class="px-6 py-3 text-left">Trạng thái</th>
+                <th class="px-6 py-3 text-left">Ngày gửi</th>
+                <th class="px-6 py-3 text-left">Ngày xác thực</th>
+                <th class="px-6 py-3 text-left">File đính kèm</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                foreach (var v in Model.Items)
+                {
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <td class="px-6 py-4">@v.ver_id</td>
+                        <td class="px-6 py-4">@v.restaurant?.res_name</td>
+                        <td class="px-6 py-4">@v.ver_tax_code</td>
+                        <td class="px-6 py-4">@v.ver_license</td>
+                        <td class="px-6 py-4">@v.ver_document</td>
+                        <td class="px-6 py-4">
+                            @{
+                                string statusText = v.ver_status switch {
+                                    1 => "Đã duyệt",
+                                    2 => "Từ chối",
+                                    _ => "Chờ duyệt"
+                                };
+                                string statusColor = v.ver_status == 1 ? "text-green-600 font-semibold"
+                                                    : v.ver_status == 2 ? "text-red-600 font-semibold"
+                                                    : "text-yellow-600 font-semibold";
+                            }
+                            <span class="@statusColor">@statusText</span>
+                        </td>
+                        <td class="px-6 py-4">@v.ver_date_submitted.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="px-6 py-4">
+                            @if (v.ver_status == 1 && v.ver_date_verified != null)
+                            {
+                                <span class="text-green-700">Ngày duyệt: @v.ver_date_verified?.ToString("dd/MM/yyyy HH:mm")</span>
+                            }
+                            else if (v.ver_status == 2 && v.ver_date_verified != null)
+                            {
+                                <div>
+                                    <span class="text-red-700">Ngày bác bỏ: @v.ver_date_verified?.ToString("dd/MM/yyyy HH:mm")</span>
+                                    <br />
+                                    <span class="text-red-500">Lý do: @v.ver_content_responded</span>
+                                </div>
+                            }
+                        </td>
+                        <td class="px-6 py-4">
+                            @if (!string.IsNullOrEmpty(v.ver_file_attachment))
+                            {
+                                <a href="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/verifications/@v.ver_file_attachment" target="_blank" class="text-blue-600 hover:underline">Xem file</a>
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">Không có</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4">
+                            @if (v.ver_status == 0) // Chỉ cho duyệt/bác nếu đang chờ duyệt
+                            {
+                                <form action="/Verification/Approve" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="@v.ver_id" />
+                                    <button type="submit" class="text-green-600 hover:underline ml-2">Duyệt</button>
+                                </form>
+                                <button type="button" class="text-red-600 hover:underline ml-2" onclick="showRejectModal(@v.ver_id)">Bác bỏ</button>
+                            }
+                            else if (v.ver_status == 1)
+                            {
+                                <span class="text-green-600 font-semibold">Đã duyệt</span>
+                            }
+                            else if (v.ver_status == 2)
+                            {
+                                <span class="text-red-600 font-semibold">Đã bác bỏ</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="10" class="text-center py-4 text-gray-500">Không có dữ liệu xác thực.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@await Html.PartialAsync("_Pagination", Model)
+
+<div id="rejectModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded shadow-lg p-6 w-full max-w-md">
+        <h3 class="font-bold mb-2 text-gray-700">Nhập lý do bác bỏ</h3>
+        <form id="rejectForm" method="post" action="Verification/Reject">
+            <input type="hidden" name="id" id="rejectId" />
+            <textarea name="reason" id="rejectReason" class="w-full border rounded p-2 mb-3 text-gray-700" rows="3" required></textarea>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeRejectModal()" class="px-4 py-2 bg-gray-300 rounded">Hủy</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Xác nhận</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showRejectModal(id) {
+    document.getElementById('rejectId').value = id;
+    document.getElementById('rejectReason').value = '';
+    document.getElementById('rejectModal').classList.remove('hidden');
+}
+function closeRejectModal() {
+    document.getElementById('rejectModal').classList.add('hidden');
+}
+</script>

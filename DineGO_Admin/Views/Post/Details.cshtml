@@ -1,0 +1,253 @@
+@model Core.Models.Post
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Chi tiết bài viết";
+}
+
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+            <a href="@Url.Action("Index")" class="hover:text-blue-600">Bài viết</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Chi tiết bài viết #@Model.post_id</span>
+        </nav>
+        
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-900">Chi tiết bài viết</h1>
+            
+            <!-- Action Buttons -->
+            <div class="flex space-x-3">
+                @if (!Model.post_is_approve)
+                {
+                    <form action="@Url.Action("Approve", new { id = Model.post_id })" method="post" class="inline">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                                onclick="return confirm('Bạn có chắc muốn duyệt bài viết này?')">
+                            <i class="fas fa-check mr-2"></i>Duyệt bài viết
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form action="@Url.Action("Reject", new { id = Model.post_id })" method="post" class="inline">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition"
+                                onclick="return confirm('Bạn có chắc muốn bỏ duyệt bài viết này?')">
+                            <i class="fas fa-times mr-2"></i>Bỏ duyệt
+                        </button>
+                    </form>
+                }
+                
+                <form action="@Url.Action("Delete", new { id = Model.post_id })" method="post" class="inline">
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                            onclick="return confirm('Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác!')">
+                        <i class="fas fa-trash mr-2"></i>Xóa bài viết
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Post Header -->
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                        @(Model.customer?.cus_name?.FirstOrDefault().ToString().ToUpper() ?? "U")
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">@(Model.customer?.cus_name ?? "Unknown User")</h3>
+                        <p class="text-sm text-gray-500">@Model.post_created_date.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+                
+                <!-- Status Badge -->
+                @if (Model.post_is_approve)
+                {
+                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                        <i class="fas fa-check-circle mr-1"></i>Đã duyệt
+                    </span>
+                }
+                else
+                {
+                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">
+                        <i class="fas fa-clock mr-1"></i>Chờ duyệt
+                    </span>
+                }
+            </div>
+        </div>
+
+        <!-- Post Content -->
+        <div class="p-6">
+            @if (!string.IsNullOrEmpty(Model.post_title))
+            {
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">@Model.post_title</h2>
+            }
+            
+            <div class="prose max-w-none mb-6">
+                <p class="text-gray-700 leading-relaxed">@Model.post_content</p>
+            </div>
+
+            <!-- Images -->
+            @if (!string.IsNullOrEmpty(Model.post_image))
+            {
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-3">Hình ảnh</h4>
+                    @if (Model.post_images_json?.Count > 1)
+                    {
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach (var image in Model.post_images_json)
+                            {
+                                <div class="relative group">
+                                    <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/posts/thumb_@image" alt="Post Image" class="w-full h-48 object-cover rounded-lg shadow cursor-pointer" 
+                                         onclick="openImageModal('@image')">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition rounded-lg"></div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        var singleImage = Model.post_images_json?.FirstOrDefault() ?? Model.post_image;
+                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/posts/thumb_@singleImage" alt="Post Image" class="max-w-full h-auto rounded-lg shadow cursor-pointer" 
+                             onclick="openImageModal('@singleImage')">
+                    }
+                </div>
+            }
+
+            <!-- Video -->
+            @if (!string.IsNullOrEmpty(Model.post_video))
+            {
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-3">Video</h4>
+                    <video controls class="w-full rounded-lg shadow">
+                        <source src="@Model.post_video" type="video/mp4">
+                        Trình duyệt của bạn không hỗ trợ video.
+                    </video>
+                </div>
+            }
+        </div>
+
+        <!-- Stats Section -->
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-600">@(Model.post_like_count ?? 0)</div>
+                    <div class="text-sm text-gray-600">Lượt thích</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">@(Model.post_comment_count ?? 0)</div>
+                    <div class="text-sm text-gray-600">Bình luận</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600">@((Model.post_like_count ?? 0) + (Model.post_comment_count ?? 0))</div>
+                    <div class="text-sm text-gray-600">Tổng tương tác</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Info -->
+        <div class="p-6 bg-gray-50 border-t border-gray-200">
+            <h4 class="text-lg font-semibold text-gray-900 mb-4">Thông tin bài viết</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="font-medium text-gray-700">ID bài viết:</span>
+                    <span class="text-gray-600">@Model.post_id</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Tác giả:</span>
+                    <span class="text-gray-600">@(Model.customer?.cus_name ?? "Unknown User")</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Ngày tạo:</span>
+                    <span class="text-gray-600">@Model.post_created_date.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Cập nhật lần cuối:</span>
+                    <span class="text-gray-600">@Model.post_updated_date.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                </div>
+                @if (Model.cus_id.HasValue)
+                {
+                    <div>
+                        <span class="font-medium text-gray-700">ID khách hàng:</span>
+                        <span class="text-gray-600">@Model.cus_id</span>
+                    </div>
+                }
+                @if (Model.res_id.HasValue)
+                {
+                    <div>
+                        <span class="font-medium text-gray-700">ID nhà hàng:</span>
+                        <span class="text-gray-600">@Model.res_id</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+    <div class="max-w-4xl max-h-[90vh] p-4">
+        <img id="modalImage" src="" alt="Full Size Image" class="max-w-full max-h-full object-contain rounded-lg">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg">
+            <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+        </div>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg">
+            <i class="fas fa-exclamation-circle mr-2"></i>@TempData["ErrorMessage"]
+        </div>
+    </div>
+}
+
+<script>
+function openImageModal(imageSrc) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('imageModal').classList.remove('hidden');
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside the image
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+
+// Auto hide notifications after 3 seconds
+setTimeout(() => {
+    const notifications = document.querySelectorAll('.fixed.top-4.right-4');
+    notifications.forEach(notification => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    });
+}, 3000);
+</script>

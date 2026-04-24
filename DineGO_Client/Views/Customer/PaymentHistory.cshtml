@@ -1,0 +1,71 @@
+@model Core.Models.Client.Custom.CustomProfileViewModel
+@{
+    Layout = "../../Views/Shared/_Profile.cshtml";
+    ViewData["Title"] = "PaymentHistory";
+}
+
+<!-- Profile Content (Chiếm 8 cột) -->
+<div class="col-md-9 d-flex justify-content-center">
+    <div class="profile-container_form">
+        <h3 class="text-center mb-4">Lịch sử thanh toán</h3>
+
+        @if (Model.Data.ContainsKey("Payments"))
+        {
+            var payments = Model.Data["Payments"] as List<Core.Models.Payment>;
+
+            if (payments == null || !payments.Any())
+            {
+                <div class="alert alert-info text-center">Bạn chưa có giao dịch thanh toán nào.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center align-middle">
+                        <thead class="table-danger" style="border: 1px solid #dc3545 ;">
+                            <tr>
+                                <th>Mã giao dịch</th>
+                                <th>Ngày thanh toán</th>
+                                <th>Số tiền</th>
+                                <th>Loại giao dịch</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in payments)
+                            {
+                                string typeText = payment.reser_id == null ? "Đặt món" : "Đặt bàn";
+                                string statusText = payment.pay_status switch
+                                {
+                                    0 => "Thất bại",
+                                    1 => "Thành công",
+                                    _ => "Không xác định"
+                                };
+                                string badgeClass = payment.pay_status switch
+                                {
+                                    0 => "bg-danger",
+                                    1 => "bg-success",
+                                    _ => "bg-secondary"
+                                };
+                                <tr>
+                                    <td>@payment.pay_id</td>
+                                    <td>@payment.pay_created_date.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@payment.pay_price.ToString("N0") VND</td>
+                                    <td>
+                                        <span class="badge bg-primary">@typeText</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @badgeClass">@statusText</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info text-center">Bạn chưa có giao dịch thanh toán nào.</div>
+        }
+    </div>
+</div>

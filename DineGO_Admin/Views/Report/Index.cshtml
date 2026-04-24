@@ -1,0 +1,63 @@
+@model List<Core.Models.Report>
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Báo cáo";
+}
+<h2 class="text-2xl font-bold mb-6">Danh sách Báo cáo</h2>
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-3 py-2 text-left">ID</th>
+                <th class="px-3 py-2 text-left">Người báo cáo</th>
+                <th class="px-3 py-2 text-left">Người bị báo cáo</th>
+                <th class="px-3 py-2 text-left">Loại</th>
+                <th class="px-3 py-2 text-left">Nội dung</th>
+                <th class="px-3 py-2 text-left">Liên kết liên quan</th>
+                <th class="px-3 py-2 text-left">Trạng thái</th>
+                <th class="px-3 py-2 text-left">Ngày tạo</th>
+                <th class="px-3 py-2 text-left">Admin xử lý</th>
+                <th class="px-3 py-2 text-left">Ghi chú admin</th>
+                <th class="px-3 py-2 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var r in Model)
+                {
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <td class="px-3 py-2">@r.report_id</td>
+                        <td class="px-3 py-2">@r.customer?.cus_name Id: (@r.cus_id)</td>
+                        <td class="px-3 py-2">@r.reported_user_id</td>
+                        <td class="px-3 py-2">@r.report_type</td>
+                        <td class="px-3 py-2">@r.report_content</td>
+                        <td class="px-3 py-2">@r.report_related_url</td>
+                        <td class="px-3 py-2">@r.report_status</td>
+                        <td class="px-3 py-2">@r.report_created_at.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="px-3 py-2">@r.admin?.ad_name Id: (@r.admin_id)</td>
+                        <td class="px-3 py-2">@r.admin_note</td>
+                        <td class="px-3 py-2">
+                            <div class="flex space-x-3 text-lg">
+                                <a href="@Url.Action("Edit", "Report", new { id = r.report_id })" class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="@Url.Action("Delete", "Report", new { id = r.report_id })" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa báo cáo này?');" class="inline">
+                                    <button type="submit" class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="11" class="text-center py-4 text-gray-500">Không có báo cáo nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

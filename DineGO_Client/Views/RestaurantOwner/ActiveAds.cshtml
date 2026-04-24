@@ -1,0 +1,125 @@
+@model List<Core.Models.Client.Custom.AdRegistrationResponseDto>
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Quảng cáo đang hoạt động";
+}
+
+<div class="col-md-12">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Quảng cáo đang hoạt động</h4>
+            <div>
+                <a href="@Url.Action("AvailableSlots", "RestaurantOwner")" class="btn btn-light btn-sm me-2">
+                    <i class="bi bi-plus-circle"></i> Slot có thể thuê
+                </a>
+                <a href="@Url.Action("InactiveAds", "RestaurantOwner")" class="btn btn-light btn-sm">
+                    <i class="bi bi-archive"></i> Quảng cáo đã hết hạn
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-danger">❗ Chưa có quảng cáo nào đang chạy.</div>
+            }
+            else
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3 text-danger">Danh sách quảng cáo</h5>
+
+                        <!-- Trượt ngang -->
+                        <div class="d-flex flex-row flex-nowrap overflow-auto pb-2" style="gap: 1rem;">
+                            @foreach (var ad in Model)
+                            {
+                                <div class="card shadow-sm border-0" style="min-width: 240px; flex: 0 0 auto;">
+                                    <!-- Ảnh click mở link -->
+                                    <a href="@ad.ad_link_url" target="_blank">
+                                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/ads/thumb_@ad.ad_image_url"
+                                            onerror="this.onerror=null; this.src='/common/images/banner.jpg';"
+                                            class="card-img-top" style="height:120px;object-fit:cover;cursor:pointer;"
+                                            alt="Ad image" />
+                                    </a>
+
+                                    <div class="card-body">
+                                        <h6 class="card-title text-danger">@ad.slot_name</h6>
+
+                                        <p class="mb-1 small text-muted">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            Bắt đầu: @ad.start_date.ToString("dd/MM/yyyy HH:mm")
+                                        </p>
+                                        <p class="mb-1 small text-muted">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            Kết thúc: @ad.end_date.ToString("dd/MM/yyyy HH:mm")
+                                        </p>
+
+                                        <div class="alert alert-light text-center py-1 px-2 mt-2 mb-0">
+                                            <span class="small fw-bold">
+                                                ⏳ Còn lại: <span id="countdown-@ad.ad_id" class="text-success"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@using System.Text.Json
+@section Scripts {
+    @{
+        var adsPayload = (Model != null && Model.Any())
+        ? Model.Select(a => new { id = a.ad_id, endDate = a.end_date })
+        : Enumerable.Empty<object>();
+
+        var adsJson = JsonSerializer.Serialize(adsPayload);
+    }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ads = @Html.Raw(adsJson);
+
+            ads.forEach(function (ad) {
+                var el = document.getElementById("countdown-" + ad.id);
+                if (!el) return;
+
+                var end = new Date(ad.endDate).getTime();
+
+                function update() {
+                    var now = Date.now();
+                    var dist = end - now;
+
+                    if (dist <= 0) {
+                        el.textContent = "Đã hết hạn";
+                        el.classList.remove("text-success");
+                        el.classList.add("text-danger");
+
+                        if (!el.dataset.expired) {
+                            el.dataset.expired = "true"; // đánh dấu đã gọi
+                            fetch('/RestaurantOwner/DetectExpiredAds', {
+                                method: 'POST'
+                            })
+                                .then(r => r.json())
+                                .then(data => console.log("DetectExpiredAds:", data));
+                        }
+
+                        return;
+                    }
+                    var days = Math.floor(dist / (1000 * 60 * 60 * 24));
+                    var hours = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    var mins = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
+                    var secs = Math.floor((dist % (1000 * 60)) / 1000);
+
+                    el.textContent = days + " ngày " + hours + "h " + mins + "m " + secs + "s";
+                }
+
+                update();
+                setInterval(update, 1000);
+            });
+        });
+    </script>
+}

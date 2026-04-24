@@ -1,0 +1,490 @@
+@model Core.Models.Client.Custom.CheckOutViewModel
+@{
+    ViewData["Title"] = "CheckOut";
+    var orderTotal = Model.SelectedFoods.Sum(x => x.Price * x.Quantity);
+
+    // *** FIX: Tham khảo BR-32, 33 ***
+    // BR-32: Voucher giảm % có cap tối đa (dùng voucher_cap_amount từ database)
+    // BR-33: Voucher giảm cố định không vượt quá 50% đơn hàng
+    var maxFixedVoucherPercent = 0.5m; // 50% theo BR-33
+    var maxFixedVoucherAmount = orderTotal * maxFixedVoucherPercent;
+    
+    // 👉 Kiểm tra thông tin khách hàng
+    var isValidCustomer = !string.IsNullOrWhiteSpace(Model.Customer.cus_name) && 
+                         !string.IsNullOrWhiteSpace(Model.Customer.cus_phone) && 
+                         !string.IsNullOrWhiteSpace(Model.Customer.cus_address);
+    
+    // 👉 Kiểm tra khoảng cách giao hàng
+    var distanceKm = ViewBag.DistanceKm != null ? (double)ViewBag.DistanceKm : 0;
+    var isValidDistance = distanceKm <= 10;
+    var canOrder = isValidCustomer && isValidDistance;
+
+    // 👉 Tính phí giao hàng
+    var deliveryFeePerKm = 4000; // 4000 VND per km
+    var deliveryFee = distanceKm <= 1 ? 0 : (decimal)(distanceKm * deliveryFeePerKm); // Miễn phí nếu ≤ 1km
+    
+    // 👉 Tổng tiền bao gồm phí giao hàng
+    var totalWithDelivery = orderTotal + deliveryFee;
+
+    // 👉 Tính thời gian giao hàng dự kiến
+    var maxPrepTime = Model.SelectedFoods.Max(x => x.PrepTime ?? 0); // phút
+    var transportTime = CalculateTransportTime(distanceKm); // phút
+    var preparationTime = 5; // phút
+    var estimatedTime = maxPrepTime + transportTime + preparationTime;
+    var estimatedDeliveryTime = DateTime.Now.AddMinutes(estimatedTime);
+}
+
+@functions {
+    public int CalculateTransportTime(double distanceKm)
+    {
+        if (distanceKm <= 2) return 10;
+        else if (distanceKm <= 5) return 15;
+        else if (distanceKm <= 8) return 25;
+        else if (distanceKm <= 10) return 35;
+        else return 45; // Vượt phạm vi
+    }
+}
+
+<div class="container my-5 px-2 px-md-0"> 
+    
+    <!-- 👉 Hiển thị cảnh báo nếu thiếu thông tin -->
+    @if (!isValidCustomer)
+    {
+        <div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                <div>
+                    <h6 class="alert-heading mb-2">Thông tin giao hàng chưa đầy đủ</h6>
+                    <p class="mb-2">Vui lòng cập nhật đầy đủ họ tên, số điện thoại và địa chỉ để có thể đặt hàng.</p>
+                    <a href="@Url.Action("Profile", "Customer")" class="btn btn-warning fw-bold">
+                        <i class="bi bi-person-gear"></i> Cập nhật thông tin
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- 👉 Hiển thị cảnh báo nếu vượt quá khoảng cách -->
+    @if (!isValidDistance)
+    {
+        <div class="alert alert-danger border-0 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                <div>
+                    <h6 class="alert-heading mb-2">Không thể giao hàng đến địa chỉ này</h6>
+                    <p class="mb-2">Khoảng cách từ nhà hàng đến địa chỉ của bạn là <strong>@distanceKm.ToString("F1") km</strong>, vượt quá phạm vi giao hàng tối đa <strong>10km</strong>.</p>
+                    <p class="mb-0">Vui lòng chọn nhà hàng gần hơn hoặc thay đổi địa chỉ giao hàng.</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ... existing code for customer info and order info ... -->
+
+    <!-- Thông tin người nhận -->
+    <div class="bg-white border rounded shadow-sm p-4 mb-4">
+        <h5 class="fw-bold mb-3">
+            Thông tin giao hàng
+            @if (!isValidCustomer)
+            {
+                <span class="badge bg-warning text-dark ms-2">Chưa đầy đủ</span>
+            }
+            else
+            {
+                <span class="badge bg-success ms-2">Đã đầy đủ</span>
+            }
+        </h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Họ và tên</label>
+                <input type="text" 
+                       class="form-control @(string.IsNullOrWhiteSpace(Model.Customer.cus_name) ? "bg-light text-muted" : "")" 
+                       value="@(string.IsNullOrWhiteSpace(Model.Customer.cus_name) ? "Chưa cập nhật" : Model.Customer.cus_name)" 
+                       readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Số điện thoại</label>
+                <input type="text" 
+                       class="form-control @(string.IsNullOrWhiteSpace(Model.Customer.cus_phone) ? "bg-light text-muted" : "")" 
+                       value="@(string.IsNullOrWhiteSpace(Model.Customer.cus_phone) ? "Chưa cập nhật" : Model.Customer.cus_phone)" 
+                       readonly />
+            </div>
+            <div class="col-12">
+                <label class="form-label">Địa chỉ giao hàng</label>
+                <input type="text" 
+                       class="form-control @(string.IsNullOrWhiteSpace(Model.Customer.cus_address) ? "bg-light text-muted" : "")" 
+                       value="@(string.IsNullOrWhiteSpace(Model.Customer.cus_address) ? "Chưa cập nhật" : Model.Customer.cus_address)" 
+                       readonly />
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin đơn hàng -->
+    <div class="bg-white border rounded shadow-sm p-4 mb-4">
+        <h5 class="fw-bold mb-3">Thông tin đơn hàng</h5>
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Ngày đặt:</label>
+                <div>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Nhà hàng:</label>
+                <div>
+                    @string.Join(", ", Model.SelectedFoods.Select(x => x.RestaurantName).Distinct())
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Khoảng cách:
+                <i class="bi bi-question-circle text-muted ms-1" 
+                       title="Chi tiết khoảng cách:&#10;• Phạm vi giao hàng: Tối đa 10km&#10;• Khoảng cách hiện tại: @distanceKm.ToString("F1") km&#10;• Thời gian vận chuyển: @transportTime phút&#10;@(isValidDistance ? "✅ Trong phạm vi giao hàng" : "❌ Vượt quá phạm vi giao hàng")"
+                       style="cursor: help;"></i>
+                </label>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="@(isValidDistance ? "text-success" : "text-danger") fw-bold">
+                        @distanceKm.ToString("F1") km
+                    </span>
+                    @if (isValidDistance)
+                    {
+                        <span class="badge bg-success">Trong phạm vi</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Vượt quá phạm vi</span>
+                    }
+                </div>
+                @if (!isValidDistance)
+                {
+                    <div class="text-danger small mt-1">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Giới hạn 10km
+                    </div>
+                }
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Thời gian giao:
+                <i class="bi bi-question-circle text-muted ms-1" 
+                    title="Chi tiết thời gian:&#10;• Chế biến món: @maxPrepTime phút&#10;• Vận chuyển: @transportTime phút&#10;• Chuẩn bị đóng gói: @preparationTime phút&#10;• Tổng cộng: @estimatedTime phút&#10;&#10;Công thức tính thời gian vận chuyển:&#10;• Khoảng cách 0-2km: 10 phút&#10;• Khoảng cách 2-5km: 15 phút&#10;• Khoảng cách 5-8km: 25 phút&#10;• Khoảng cách 8-10km: 35 phút&#10;• Trên 10km: 45 phút (không giao)&#10;&#10;⏰ Dự kiến giao: @estimatedDeliveryTime.ToString("HH:mm dd/MM/yyyy")"
+                    style="cursor: help;"></i>
+                </label>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-primary fw-bold">
+                        @estimatedDeliveryTime.ToString("HH:mm")
+                    </span>
+                    <span class="badge bg-info text-dark">~@estimatedTime phút</span>
+                </div>
+                <div class="text-muted small mt-1">
+                    <i class="bi bi-clock"></i>
+                    Dự kiến: @estimatedDeliveryTime.ToString("dd/MM HH:mm")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đơn hàng theo từng nhà hàng -->
+    @foreach (var group in Model.SelectedFoods.GroupBy(x => x.RestaurantName))
+    {
+        var groupTotal = group.Sum(item => item.Price * item.Quantity);
+        var groupCount = group.Sum(item => item.Quantity);
+        var groupMaxPrepTime = group.Max(item => item.PrepTime ?? 0);
+
+        <div class="mb-4 overflow-auto">  
+            <h5 class="fw-bold text-danger mb-3">
+                🍽 @group.Key 
+            </h5>
+            <table class="table align-middle table-sm table-hover table-bordered text-nowrap">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">Món ăn</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-center">Đơn giá</th>
+                        <th class="text-center">Thời gian chế biến</th>
+                        <th class="text-center">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in group)
+                    {
+                        <tr>
+                            <td class="text-center">@item.FoodName</td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-center">@item.Price.ToString("N0") VND</td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">@(item.PrepTime ?? 0) phút</span>
+                            </td>
+                            <td class="text-center">@((item.Price * item.Quantity).ToString("N0")) VND</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="text-end fw-bold mt-2">
+                Tổng cộng (@groupCount món): <span class="text-danger">@groupTotal.ToString("N0") VND</span>
+            </div>
+        </div>
+    }
+
+    <!-- Voucher + Tổng tiền -->
+    <div class="bg-white border rounded shadow-sm p-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2 text-muted">
+                <i class="bi bi-ticket-perforated text-danger"></i>
+                <strong>Voucher</strong>
+            </div>
+            <a href="javascript:void(0)" 
+               class="text-primary text-decoration-none @(!canOrder ? "disabled" : "")" 
+               data-bs-toggle="modal" 
+               data-bs-target="#voucherModal" 
+               id="openVoucherModal"
+               @(!canOrder ? "style=pointer-events:none;opacity:0.5;" : "")>
+                Chọn hoặc nhập mã
+            </a>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+            <div class="text-end w-100 w-md-auto">
+                <div class="mb-2">
+                    <span class="fw-bold me-2">Tạm tính (@Model.SelectedFoods.Sum(x => x.Quantity) món):</span>
+                    <span class="text-dark">@orderTotal.ToString("N0") VND</span>
+                </div>
+                <div class="mb-2">
+                    <span class="fw-bold me-2">Phí giao hàng (@distanceKm.ToString("F1")km):
+                    <i class="bi bi-question-circle text-muted ms-1" 
+                    title="Công thức tính phí giao hàng:&#10;• Phí cơ bản: 4,000 VND/km&#10;• Khoảng cách: @distanceKm.ToString("F1") km&#10;• Tính phí: @(distanceKm <= 1 ? "Miễn phí (≤ 1km)" : $"{distanceKm:F1} × 4,000 = {deliveryFee:N0} VND")&#10;&#10;Chính sách phí giao hàng:&#10;• Miễn phí: Khoảng cách ≤ 1km&#10;• Có phí: Khoảng cách > 1km (4,000 VND/km)&#10;• Tối đa: 10km (40,000 VND)&#10;• Voucher không áp dụng cho phí giao hàng"
+                    style="cursor: help;"></i>
+                    </span>
+                    <span class="@(deliveryFee == 0 ? "text-success" : "text-dark")">
+                        @(deliveryFee == 0 ? "Miễn phí" : deliveryFee.ToString("N0") + " VND")
+                    </span>
+                </div>
+                <div id="voucherDiscountInfo" class="text-success small mb-2"></div>
+                <div class="mb-2 border-top pt-2">
+                    <span class="fw-bold me-2 fs-5">Tổng cộng:</span>
+                    <span class="fs-4 text-danger fw-bold" id="finalTotal">@totalWithDelivery.ToString("N0") VND</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted">Giao hàng dự kiến:</span>
+                    <span class="fw-bold text-primary">@estimatedDeliveryTime.ToString("HH:mm dd/MM/yyyy")</span>
+                </div>
+                
+                <form asp-action="SubmitCheckout" method="post" id="submitCheckoutForm">
+                    <!-- Thông tin voucher -->
+                    <input type="hidden" id="selectedVoucher" name="SelectedVoucherCode" value="" />
+                    <input type="hidden" id="voucherDiscountAmount" name="VoucherDiscountAmount" value="0" />
+                    
+                    <!-- Thông tin thời gian và phí -->
+                    <input type="hidden" name="EstimatedDeliveryTime" value="@estimatedDeliveryTime.ToString("yyyy-MM-dd HH:mm:ss")" />
+                    <input type="hidden" name="DeliveryFee" value="@deliveryFee" />
+                    
+                    <!-- Thông tin tổng tiền -->
+                    <input type="hidden" name="OrderSubtotal" value="@orderTotal" />
+                    <input type="hidden" id="finalOrderTotal" name="OrderTotal" value="@totalWithDelivery" />
+                    
+                    <!-- Danh sách cart items -->
+                    @foreach (var item in Model.SelectedFoods)
+                    {
+                        <input type="hidden" name="SelectedCartFoodIds" value="@item.CartFoodId" />
+                    }
+                    <div class="d-flex gap-2 flex-column flex-md-row">
+                        <a href="@Url.Action("Index", "Cart")" class="btn btn-outline-secondary px-4 py-2 fw-bold w-100 w-md-auto">
+                            <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
+                        </a>
+                        
+                        @if (canOrder)
+                        {
+                            <button type="submit" class="btn btn-warning px-5 py-2 fw-bold text-white w-100 w-md-auto" style="background-color: #ee4d2d; border: none;">
+                                <i class="bi bi-check-circle"></i> Xác nhận đơn hàng
+                            </button>
+                        }
+                        else if (!isValidDistance)
+                        {
+                            <button type="button" class="btn btn-danger px-5 py-2 fw-bold w-100 w-md-auto" disabled>
+                                <i class="bi bi-geo-alt"></i> Vượt phạm vi giao hàng
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-secondary px-5 py-2 fw-bold w-100 w-md-auto" disabled>
+                                <i class="bi bi-exclamation-triangle"></i> Cần cập nhật thông tin
+                            </button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal chọn voucher -->
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="voucherModalLabel">Chọn voucher</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <div id="voucherList">
+          @if (ViewBag.OwnedVouchers == null || !((List<Core.Models.Client.Custom.VoucherOwnedViewmodel>)ViewBag.OwnedVouchers).Any())
+          {
+              <div class="text-muted">Không có voucher khả dụng.</div>
+          }
+          else
+          {
+              <ul class="list-group">
+                @foreach (var v in (List<Core.Models.Client.Custom.VoucherOwnedViewmodel>)ViewBag.OwnedVouchers)
+                {
+                    // *** FIX: BR-33 - Kiểm tra voucher cố định không vượt quá 50% đơn hàng ***
+                    bool canUseVoucher = true;
+                    string discountText;
+                    string warningText = "";
+                    
+                    if (v.VoucherType == 0) // % voucher
+                    {
+                        // BR-32: Sử dụng voucher_cap_amount từ database thay vì hard-code
+                        var capAmount = v.VoucherCapAmount ?? 0;
+                        discountText = $"{v.VoucherDiscount}% (tối đa {capAmount.ToString("N0")} VND)";
+                    }
+                    else // Fixed amount voucher
+                    {
+                        // BR-33: Kiểm tra không vượt quá 50% đơn hàng
+                        if (v.VoucherDiscount > maxFixedVoucherAmount)
+                        {
+                            canUseVoucher = false;
+                            warningText = $"Voucher vượt quá 50% giá trị đơn hàng ({maxFixedVoucherAmount.ToString("N0")} VND)";
+                            discountText = $"{v.VoucherDiscount.ToString("N0")} VND";
+                        }
+                        else
+                        {
+                            discountText = $"{v.VoucherDiscount.ToString("N0")} VND";
+                        }
+                    }
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center @(!canUseVoucher ? "list-group-item-secondary" : "")">
+                        <div>
+                            <strong class="@(!canUseVoucher ? "text-muted" : "")">@v.VoucherCode</strong><br/>
+                            <span class="@(!canUseVoucher ? "text-muted" : "")">Giảm: @discountText</span><br/>
+                            <span class="@(!canUseVoucher ? "text-muted" : "")">HSD: @v.VoucherEndDate.ToString("dd/MM/yyyy")</span><br/>
+                            <span class="@(!canUseVoucher ? "text-muted" : "")">SL: @v.Quantity</span>
+                            
+                            @if (!canUseVoucher)
+                            {
+                                <br/><small class="text-danger">⚠️ @warningText</small>
+                            }
+                        </div>
+                        
+                        @if (canUseVoucher)
+                        {
+                            <button class="btn btn-sm btn-success select-voucher"
+                                    data-code="@v.VoucherCode"
+                                    data-type="@v.VoucherType"
+                                    data-discount="@v.VoucherDiscount"
+                                    data-cap-amount="@(v.VoucherCapAmount ?? 0)">
+                                Chọn
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-secondary" disabled title="@warningText">
+                                Không khả dụng
+                            </button>
+                        }
+                    </li>
+                }
+              </ul>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let originalTotal = @orderTotal;
+        let deliveryFee = @deliveryFee;
+        let totalWithDelivery = @totalWithDelivery;
+        let isValidCustomer = @(isValidCustomer ? "true" : "false");
+        let isValidDistance = @(isValidDistance ? "true" : "false");
+        let canOrder = @(canOrder ? "true" : "false");
+        let maxFixedVoucherAmount = @maxFixedVoucherAmount; // BR-33: 50% limit
+
+        // 👉 Ngăn submit form nếu chưa đủ thông tin hoặc vượt quá khoảng cách
+        $('#submitCheckoutForm').on('submit', function(e) {
+            if (!canOrder) {
+                e.preventDefault();
+                if (!isValidDistance) {
+                    alert('Không thể giao hàng: Khoảng cách vượt quá 10km!');
+                } else if (!isValidCustomer) {
+                    alert('Vui lòng cập nhật đầy đủ thông tin giao hàng trước khi đặt hàng!');
+                }
+                return false;
+            }
+        });
+
+        function formatCurrency(val) {
+            return val
+                .toLocaleString('vi-VN', { maximumFractionDigits: 0 })
+                .replace(/\./g, ',') + ' VND';
+        }
+
+        // *** FIX: Xử lý chọn voucher theo BR-32, BR-33 ***
+        $(document).on('click', '.select-voucher', function () {
+            if (!canOrder) {
+                if (!isValidDistance) {
+                    alert('Không thể chọn voucher: Khoảng cách giao hàng vượt quá 10km!');
+                } else {
+                    alert('Vui lòng cập nhật thông tin giao hàng trước khi chọn voucher!');
+                }
+                return;
+            }
+
+            const code = $(this).data('code');
+            const type = parseInt($(this).data('type'));   // 0 = %, 1 = số tiền
+            const discount = parseFloat($(this).data('discount'));
+            const capAmount = parseFloat($(this).data('cap-amount')) || 0; // BR-32: Lấy cap từ database
+            let discountAmount = 0;
+
+            if (type === 0) { 
+                // *** BR-32: Voucher % giảm - sử dụng voucher_cap_amount từ database ***
+                discountAmount = originalTotal * discount / 100;
+
+                // Áp dụng cap từ database (BR-32)
+                if (capAmount > 0 && discountAmount > capAmount) {
+                    discountAmount = capAmount;
+                }
+
+            } else { 
+                // *** BR-33: Voucher số tiền cố định - không vượt quá 50% đơn hàng ***
+                discountAmount = discount;
+
+                // BR-33: Kiểm tra không vượt quá 50%
+                if (discountAmount > maxFixedVoucherAmount) {
+                    alert(`Voucher này vượt quá 50% giá trị đơn hàng (${formatCurrency(maxFixedVoucherAmount)}). Không thể sử dụng!`);
+                    return;
+                }
+
+                // Đảm bảo không vượt quá tổng tiền món ăn
+                if (discountAmount > originalTotal) {
+                    discountAmount = originalTotal;
+                }
+            }
+            
+            // Tính tổng tiền cuối cùng: (Tiền món ăn - Voucher) + Phí giao hàng
+            let newOrderTotal = originalTotal - discountAmount;
+            if (newOrderTotal < 0) newOrderTotal = 0;
+            
+            let newFinalTotal = newOrderTotal + deliveryFee;
+
+            // UI cập nhật
+            $('#voucherModal').modal('hide');
+            $('#openVoucherModal').text('Đã chọn: ' + code).removeClass('text-primary').addClass('text-success');
+            $('#selectedVoucher').val(code);
+            $('#voucherDiscountAmount').val(discountAmount);
+            $('#finalOrderTotal').val(newFinalTotal);
+            $('#voucherDiscountInfo').html(
+                `Tiết kiệm <span class="fw-bold">${formatCurrency(discountAmount)}</span>`
+            );
+            $('#finalTotal').text(formatCurrency(newFinalTotal));
+        });
+    </script>
+}

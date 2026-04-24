@@ -1,0 +1,27 @@
+@model Core.Models.RestaurantOwner
+@{
+    ViewData["Title"] = "Xóa chủ nhà hàng";
+    Layout = "../../Views/Shared/_Layout.cshtml";
+}
+
+<h2>Xóa chủ nhà hàng</h2>
+
+<h3>Bạn có chắc chắn muốn xóa chủ nhà hàng này?</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">ID</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.res_owner_id)</dd>
+        <dt class="col-sm-2">ID Khách hàng</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.cus_id)</dd>
+        <dt class="col-sm-2">Tên</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.res_owner_name)</dd>
+        <dt class="col-sm-2">Ngày tạo</dt>
+        <dd class="col-sm-10">@Model.res_owner_created_date.ToString("yyyy-MM-dd")</dd>
+    </dl>
+    
+    <form method="post" action="/Admin/RestaurantOwner/DeleteConfirm" asp-area="Admin" asp-controller="RestaurantOwner">
+        <input type="hidden" name="resOwner_id" value="@Model.res_owner_id" />
+        <input type="submit" value="Xóa" class="btn btn-danger" /> 
+        <a href="@Url.Action("Index", "RestaurantOwner", new { area = "Admin" })" class="btn btn-secondary">Quay lại danh sách</a>
+    </form>
+</div>

@@ -1,0 +1,47 @@
+@model List<Core.Models.Client.Custom.AdHistoryDto>
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Lịch sử quảng cáo";
+}
+
+<h2 class="text-2xl font-bold mb-6">Lịch sử quảng cáo</h2>
+
+<div class="mb-6">
+    <a href="@Url.Action("Index", "Ad")"
+       class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium 
+              text-white bg-gradient-to-r from-indigo-500 to-blue-600 
+              rounded-full shadow-md hover:from-indigo-600 hover:to-blue-700 
+              focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 transition">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách Slot
+    </a>
+</div>
+
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">History ID</th>
+                <th class="px-6 py-3 text-left">Ad ID</th>
+                <th class="px-6 py-3 text-left">Slot ID</th>
+                <th class="px-6 py-3 text-left">Chủ sở hữu</th>
+                <th class="px-6 py-3 text-left">Ngày bắt đầu</th>
+                <th class="px-6 py-3 text-left">Ngày kết thúc</th>
+                <th class="px-6 py-3 text-left">Ngày lưu log</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @foreach (var h in Model)
+            {
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <td class="px-6 py-4">@h.history_id</td>
+                    <td class="px-6 py-4">@h.ad_id</td>
+                    <td class="px-6 py-4">@h.slot_id</td>
+                    <td class="px-6 py-4">@h.res_owner_id</td>
+                    <td class="px-6 py-4">@h.start_date.ToString("dd/MM/yyyy")</td>
+                    <td class="px-6 py-4">@h.end_date.ToString("dd/MM/yyyy")</td>
+                    <td class="px-6 py-4">@h.archived_date.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

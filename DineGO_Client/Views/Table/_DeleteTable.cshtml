@@ -1,0 +1,18 @@
+<div class="modal fade" id="deleteTableModal" tabindex="-1" aria-labelledby="deleteTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteTableModalLabel">Xác nhận xoá bàn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc muốn xoá bàn <strong id="tableToDeleteName"></strong> không?</p>
+                <input type="hidden" id="tableToDeleteId" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteTable()">Xoá</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+@model Core.Models.Blog
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Xóa Blog";
+}
+<h2 class="text-2xl font-bold mb-6 text-red-600">Xác nhận xóa Blog</h2>
+<form asp-action="DeleteBlog" method="post" class="bg-white dark:bg-gray-800 shadow rounded-lg p-8 max-w-xl mx-auto">
+    <input type="hidden" asp-for="blog_id" />
+    <div class="mb-4">
+        <label class="block font-semibold mb-1 text-black">ID</label>
+        <input asp-for="blog_id" class="w-full border rounded px-3 py-2 bg-gray-100 text-black" readonly />
+    </div>
+    <div class="mb-4">
+        <label class="block font-semibold mb-1 text-black">Tiêu đề</label>
+        <input asp-for="blog_title" class="w-full border rounded px-3 py-2 bg-gray-100 text-black" readonly />
+    </div>
+    <div class="mb-4">
+        <label class="block font-semibold mb-1 text-black">Ngày</label>
+        <input asp-for="blog_date" class="w-full border rounded px-3 py-2 bg-gray-100 text-black" readonly />
+    </div>
+    <div class="mb-4">
+        <label class="block font-semibold mb-1 text-black">Hình ảnh</label>
+        <div>
+            <img src="@(string.IsNullOrEmpty(Model.blog_image) ? Url.Content("~/common/images/banner.jpg") : Model.blog_image)"
+                 alt="@Model.blog_title"
+                 class="w-32 h-32 rounded object-cover border-2 border-indigo-400" />
+        </div>
+    </div>
+    <div class="mb-4">
+        <label class="block font-semibold mb-1 text-black">Thông tin</label>
+        <textarea asp-for="blog_information" rows="3" class="w-full border rounded px-3 py-2 bg-gray-100 text-black" readonly></textarea>
+    </div>
+    <div class="flex justify-between">
+        <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-semibold">Xóa Blog</button>
+        <a href="@Url.Action("Index")" class="px-6 py-2 bg-gray-300 text-black rounded hover:bg-gray-400 font-semibold">Quay lại</a>
+    </div>
+</form>

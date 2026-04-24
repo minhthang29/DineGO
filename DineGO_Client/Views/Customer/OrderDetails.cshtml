@@ -1,0 +1,189 @@
+@model Core.Models.Client.Custom.CustomViewOrderDetails
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+@{
+    var voucherCode = Model.Order.voucher_code_applied;
+    decimal discountAmount = 0;
+    
+    // 👇 Sử dụng order_subtotal thay vì order_total để tính voucher
+    decimal orderSubtotal = Model.Order.order_subtotal;
+    decimal deliveryFee = Model.Order.delivery_fee ?? 0;
+    
+    if (!string.IsNullOrEmpty(voucherCode) && Model.Voucher != null)
+    {
+        if (Model.Voucher.voucher_type == 0) // phần trăm
+        {
+            discountAmount = Math.Round(orderSubtotal * (decimal)Model.Voucher.voucher_discount / 100);
+        }
+        else // số tiền cố định
+        {
+            discountAmount = (decimal)Model.Voucher.voucher_discount;
+        }
+        // Voucher không được lớn hơn tổng tiền món ăn
+        if (discountAmount > orderSubtotal) discountAmount = orderSubtotal;
+    }
+    
+    // Tổng cuối = (Tiền món ăn - Voucher) + Phí giao hàng
+    var finalTotal = (orderSubtotal - discountAmount) + deliveryFee;
+}
+
+<div class="container my-4">
+    <div class="order-detail-container mt-5">
+        <div class="order-header d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+            <div class="d-flex align-items-center gap-3 mb-2 mb-md-0">
+                <a href="@Url.Action("TrackingDelivery", "Customer")" class="btn btn-link text-decoration-none p-0" title="Quay lại">
+                    <i class="bi bi-arrow-left fs-4"></i>
+                </a>
+            </div>
+            <div class="order-timestamp text-muted mb-2 mb-md-0">
+                <i class="bi bi-clock"></i> @Model.Order.order_date.ToString("HH:mm dd/MM/yyyy")
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="restaurant-name fw-bold">
+                    @(Model.Order.restaurant?.res_name ?? "Nhà Hàng")
+                </div>
+                <span class="badge 
+                    @(Model.Order.order_status == 3 ? "bg-success" : 
+                    Model.Order.order_status == 4 ? "bg-danger" : 
+                    Model.Order.order_status == 2 ? "bg-orange" : 
+                    Model.Order.order_status == 1 ? "bg-primary" : 
+                    Model.Order.order_status == 0 ? "bg-warning text-dark" : "bg-secondary") status-badge">
+                    @{
+                        var statusText = Model.Order.order_status switch
+                        {
+                            0 => "Chờ xác nhận",
+                            1 => "Đang chế biến",
+                            2 => "Đang giao",
+                            3 => "Đã giao",
+                            4 => "Đã hủy",
+                            _ => "Không xác định"
+                        };
+                    }
+                    @statusText
+                </span>
+            </div>
+        </div>
+
+        <!-- Thông tin giao hàng -->
+        <div class="address-section mb-4">
+            <div class="address-row d-flex align-items-center mb-2">
+                <i class="bi bi-shop me-2 text-primary"></i>
+                <span class="fw-semibold">Nhận tại:</span>
+                <span class="ms-2">@Model.Order.restaurant?.res_address</span>
+            </div>
+            <div class="address-row d-flex align-items-center mb-2">
+                <i class="bi bi-geo-alt me-2 text-danger"></i>
+                <span class="fw-semibold">Giao đến:</span>
+                <span class="ms-2">@(Model.Order.delivery_address_snapshot ?? Model.Order.customer?.cus_address ?? "Không có thông tin")</span>
+            </div>
+            @if (Model.Order.estimated_delivery_time.HasValue)
+            {
+                <div class="address-row d-flex align-items-center">
+                    <i class="bi bi-clock me-2 text-info"></i>
+                    <span class="fw-semibold">Dự kiến giao:</span>
+                    <span class="ms-2">@Model.Order.estimated_delivery_time.Value.ToString("HH:mm dd/MM/yyyy")</span>
+                </div>
+            }
+        </div>
+
+        <!-- Thông tin khách hàng snapshot -->
+        @if (!string.IsNullOrEmpty(Model.Order.customer_name_snapshot))
+        {
+            <div class="customer-snapshot-section mb-4">
+                <div class="summary-title fw-bold mb-3">Thông tin khách hàng khi đặt</div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-person me-2 text-primary"></i>
+                            <span class="fw-semibold">Tên:</span>
+                            <span class="ms-2">@Model.Order.customer_name_snapshot</span>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Order.customer_phone_snapshot))
+                    {
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-telephone me-2 text-primary"></i>
+                                <span class="fw-semibold">SĐT:</span>
+                                <span class="ms-2">@Model.Order.customer_phone_snapshot</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Chi tiết đơn hàng -->
+        <div class="order-summary-section mb-4">
+            <div class="summary-title fw-bold mb-3">Chi tiết đơn hàng</div>
+            <ul class="order-items list-unstyled mb-3">
+                @foreach (var detail in Model.OrderDetails)
+                {
+                    <li class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                        <div class="d-flex align-items-center">
+                            @if (!string.IsNullOrEmpty(detail.food_image_snapshot))
+                            {
+                                <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/foods/thumb_@detail.FirstImage" alt="@detail.food_name_snapshot" 
+                                     class="me-3" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                            }
+                            <div>
+                                <div class="fw-semibold">@detail.food_name_snapshot</div>
+                                <div class="text-muted small">
+                                    @detail.order_quantity x @detail.food_price_snapshot.ToString("N0") VND
+                                    @if (detail.prep_time_snapshot.HasValue)
+                                    {
+                                        <span class="badge bg-secondary ms-2">@detail.prep_time_snapshot phút</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <span class="fw-bold">@((detail.order_price * detail.order_quantity).ToString("N0")) VND</span>
+                    </li>
+                }
+            </ul>
+
+            <!-- Tính toán chi tiết -->
+            <div class="order-totals">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Tạm tính (@Model.OrderDetails.Sum(d => d.order_quantity) món):</span>
+                    <span>@orderSubtotal.ToString("N0") VND</span>
+                </div>
+                
+                @if (deliveryFee > 0)
+                {
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Phí giao hàng:</span>
+                        <span>@deliveryFee.ToString("N0") VND</span>
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(voucherCode) && Model.Voucher != null && discountAmount > 0)
+                {
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Voucher (@voucherCode):</span>
+                        <span class="text-success">-@discountAmount.ToString("N0") VND</span>
+                    </div>
+                }
+                
+                <hr class="my-2">
+                <div class="d-flex justify-content-between align-items-center total-row">
+                    <span class="fw-bold fs-5">Tổng cộng:</span>
+                    <span class="fw-bold fs-5 text-primary">
+                        <i class="bi bi-cash-coin me-1"></i>@finalTotal.ToString("N0") VND
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-cta text-center mt-4">
+            <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">
+                <a href="@Url.Action("Details", "Restaurant", new { id = Model.Restaurant?.res_id })" 
+                   class="btn btn-primary btn-lg px-5 py-2 shadow-sm rounded-pill contact-btn">
+                    Liên hệ với nhà hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

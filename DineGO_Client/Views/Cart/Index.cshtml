@@ -1,0 +1,219 @@
+@{
+    ViewData["Title"] = "Index";
+}
+@model List<Core.Models.Client.Custom.CartItemViewModel>
+
+<div class="container my-5">
+    <h3 class="mb-4"><i class="bi bi-cart-check"></i> Giỏ hàng của bạn</h3>
+    
+    @if (Model == null || !Model.Any() || !Model.SelectMany(x => x.Items).Any())
+    {
+        <!-- Hiển thị khi giỏ hàng trống -->
+        <div class="text-center py-5">
+            <div class="bg-white shadow-sm rounded p-5 border">
+                <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+                <h4 class="text-muted mb-3">Giỏ hàng của bạn đang trống</h4>
+                <p class="text-muted mb-4">Hãy thêm món ăn vào giỏ hàng để tiến hành đặt món</p>
+                <a href="@Url.Action("Search", "Restaurant")" class="btn btn-danger px-5 py-2 fw-bold">
+                    <i class="bi bi-shop"></i> Khám phá nhà hàng
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Thêm vùng hiển thị lỗi tổng quát -->
+        <div id="cart-errors" class="alert alert-danger d-none mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Vui lòng kiểm tra:</strong>
+            <ul id="error-list" class="mb-0 mt-2"></ul>
+        </div>
+
+        <!-- Hiển thị giỏ hàng khi có món -->
+        @foreach (var group in Model)
+        {
+            var groupId = group.RestaurantName.Replace(" ", "").ToLower();
+
+            <div class="bg-white shadow-sm rounded mb-4 p-3 border">
+                <!-- Header nhà hàng với thông tin chi tiết -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="fw-bold text-danger mb-2">
+                            🍽 @group.RestaurantName
+                        </h5>
+                        <div class="text-muted small">
+                            <i class="bi bi-geo-alt"></i> @(group.restaurant?.res_address ?? "Địa chỉ chưa cập nhật")
+                        </div>
+                        @if (!string.IsNullOrEmpty(group.restaurant?.res_phone))
+                        {
+                            <div class="text-muted small">
+                                <i class="bi bi-telephone"></i> @group.restaurant.res_phone
+                            </div>
+                        }
+                    </div>
+                    
+                    <!-- Thông tin giờ mở cửa -->
+                    @if (group.restaurant?.res_open_time != null && group.restaurant?.res_close_time != null)
+                    {
+                        <div class="text-end">
+                            <div class="badge bg-success">
+                                <i class="bi bi-clock"></i> 
+                                @group.restaurant.res_open_time.Value.ToString(@"hh\:mm") - 
+                                @group.restaurant.res_close_time.Value.ToString(@"hh\:mm")
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Thông tin quy định nhà hàng -->
+                <div class="alert alert-info py-2 mb-3">
+                    <div class="row text-center">
+                        <div class="col-md-4 col-6 mb-2">
+                            <small class="text-muted d-block">Tổng đơn hàng tối thiểu</small>
+                            <strong class="text-primary">@group.restaurant.res_price_order_min.ToString("N0") VND</strong>
+                        </div>
+                        <div class="col-md-4 col-6 mb-2">
+                            <small class="text-muted d-block">Tổng đơn hàng tối đa</small>
+                            <strong class="text-primary">@group.restaurant.res_price_order_max.ToString("N0") VND</strong>
+                        </div>
+                        <div class="col-md-4 col-6 mb-2">
+                            <small class="text-muted d-block">Số lượng tối đa/món</small>
+                            <strong class="text-primary">@group.restaurant.res_quantity_order_max</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-none restaurant-limits" 
+                    data-group="@groupId"
+                    data-max-price="@group.restaurant?.res_price_order_max"
+                    data-min-price="@group.restaurant?.res_price_order_min"
+                    data-max-quantity="@group.restaurant?.res_quantity_order_max"
+                    data-last-order-minutes="@group.restaurant?.res_last_order_minutes"
+                    data-close-time="@group.restaurant?.res_close_time?.ToString(@"hh\:mm")">
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px;">
+                                    <input type="checkbox" class="selectAllGroup" data-group="@groupId" />
+                                </th>
+                                <th style="min-width:120px;">Món ăn</th>
+                                <th style="min-width:80px;">Giá</th>
+                                <th style="min-width:120px;">Số lượng</th>
+                                <th style="min-width:100px;">Thành tiền</th>
+                                <th style="width:60px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in group.Items)
+                            {
+                                <tr>
+                                    <td class="align-middle">
+                                        <input type="checkbox" class="cart-checkbox"
+                                               name="SelectedCartFoodIds"
+                                               value="@item.CartFoodId"
+                                               data-group="@groupId"
+                                               form="checkoutForm" />
+                                    </td>
+                                    <td class="align-middle text-start">
+                                        <strong>@item.FoodName</strong>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="unit-price" data-price="@item.Price">
+                                            @item.Price.ToString("N0") VND
+                                        </span>
+                                    </td>
+                                    <td class="align-middle" style="white-space: nowrap;">
+                                        <form asp-action="UpdateQuantity" method="post"
+                                              class="d-flex align-items-center justify-content-center quantity-form gap-2 flex-nowrap m-0">
+                                            <input type="hidden" name="cartFoodId" value="@item.CartFoodId" />
+                                            <button type="button" class="btn btn-sm btn-outline-secondary minus-btn px-2">–</button>
+                                            <input type="number" name="quantity" value="@item.Quantity"
+                                                class="form-control form-control-sm text-center quantity-input"
+                                                style="width: 60px;" 
+                                                min="1" 
+                                                max="@group.restaurant.res_quantity_order_max"/>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary plus-btn px-2">+</button>
+                                            <button type="submit" class="d-none submit-btn"></button>
+                                        </form>
+                                    </td>
+                                    <td class="align-middle total-price">
+                                        <strong class="text-danger">@item.Total.ToString("N0") VND</strong>
+                                    </td>
+                                    <td class="align-middle">
+                                        <form asp-action="Delete" method="post">
+                                            <input type="hidden" name="cartFoodId" value="@item.CartFoodId" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                    onclick="return confirm('Bạn có chắc muốn xóa món này?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- Phần tổng cộng và nút mua hàng -->
+        <div class="container mt-4">
+            <div class="row bg-white border rounded py-4 px-4 align-items-center shadow-sm">
+                <div class="col-12">
+                    <!-- Thông tin tổng quan đơn hàng -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-2">Tóm tắt đơn hàng</h6>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Tổng số món:</span>
+                                <span id="totalItems">@Model.SelectMany(x => x.Items).Sum(i => i.Quantity) món</span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Tạm tính:</span>
+                                <span id="subTotal">@Model.SelectMany(x => x.Items).Sum(i => i.Total).ToString("N0") VND</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="d-flex justify-content-end align-items-baseline gap-3 mb-2">
+                                <span class="fw-bold">Tổng cộng:</span>
+                                <span class="fs-4 fw-bold text-danger" id="grandTotal">
+                                    @Model.SelectMany(x => x.Items).Sum(i => i.Total).ToString("N0") VND
+                                </span>
+                            </div>
+                            
+                            <!-- Thông tin hướng dẫn -->
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-info-circle"></i> 
+                                @if (Model.Any())
+                                {
+                                    var firstRestaurant = Model.First().restaurant;
+                                    <text>Đơn hàng tối thiểu: <strong>@firstRestaurant.res_price_order_min.ToString("N0") VND</strong></text>
+                                    
+                                    @if (Model.Count > 1)
+                                    {
+                                        <br><small class="text-warning">* Áp dụng riêng cho từng nhà hàng</small>
+                                    }
+                                }
+                            </div>
+                            
+                            <form asp-action="CheckOut" method="post" id="checkoutForm">
+                                <button type="submit" class="btn btn-secondary px-5 py-2 fw-bold" 
+                                        style="font-size: 1.1rem;" disabled>
+                                    <i class="bi bi-cart-check"></i> Mua hàng
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model != null && Model.Any() && Model.SelectMany(x => x.Items).Any())
+{
+    <script src="/client/js/cart.js" asp-append-version="true"></script>
+}

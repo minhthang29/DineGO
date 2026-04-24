@@ -1,0 +1,37 @@
+.blog-item-short {
+    min-height: 120px;
+    max-height: 120px;
+    overflow: hidden;
+    align-items: center; /* căn giữa theo chiều dọc */
+    display: flex;
+    background: #fff;
+    border-radius: 8px;
+    padding: 8px 0;
+}
+
+.blog-item-short img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #f3f3f3;
+    display: block;
+}
+
+.blog-content-short {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Số dòng muốn hiển thị */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 2.8em;
+    font-size: 14px;
+    color: #444;
+    margin-top: 4px;
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+.blog-content-short img,
+.blog-content-short table {
+    display: none !important;
+}

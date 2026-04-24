@@ -1,0 +1,44 @@
+<!-- Modal chỉnh sửa khu vực -->
+<div class="modal fade" id="editAreaModal" tabindex="-1" aria-labelledby="editAreaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editAreaForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa khu vực</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editAreaId" />
+                    <div class="mb-3">
+                        <label for="editAreaName" class="form-label">Tên khu vực</label>
+                        <input type="text" class="form-control" id="editAreaName" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Lưu</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal xác nhận xoá -->
+<div class="modal fade" id="deleteAreaModal" tabindex="-1" aria-labelledby="deleteAreaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAreaModalLabel">Xác nhận xoá khu vực</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc muốn xoá khu vực <strong id="areaToDeleteName"></strong> không?</p>
+                <input type="hidden" id="areaToDeleteId" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAreaBtn">Xoá</button>
+            </div>
+        </div>
+    </div>
+</div>
+

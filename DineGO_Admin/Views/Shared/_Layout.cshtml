@@ -1,0 +1,269 @@
+﻿@using Microsoft.AspNetCore.Http
+@using System.IO
+@{
+    var isRestaurantActive = Context.Request.Path.StartsWithSegments("/Restaurant") ||
+    Context.Request.Path.StartsWithSegments("/Menu") || Context.Request.Path.StartsWithSegments("/Food");
+    var isOrderActive = Context.Request.Path.StartsWithSegments("/Order") ||
+    Context.Request.Path.StartsWithSegments("/Payment") || Context.Request.Path.StartsWithSegments("/Reservation");
+
+    var isCustomerActive = Context.Request.Path.StartsWithSegments("/Customer");
+    var isCustomerListActive = Context.Request.Path == "/Customer";
+    var isVerificationActive = Context.Request.Path.StartsWithSegments("/Verification");
+
+    var isOwnerActive = Context.Request.Path.StartsWithSegments("/RestaurantOwner") ||
+    Context.Request.Path.StartsWithSegments("/Verification");
+    var isOwnerListActive = Context.Request.Path == "/RestaurantOwner";
+    var isBusinessLicenseActive = Context.Request.Path.StartsWithSegments("/Verification");
+}
+<!DOCTYPE html>
+<html lang="en" class="h-full" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DineGO Admin Enhanced</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/tableResize.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+</head>
+
+<body class="flex h-full transition-colors duration-500 text-gray-800 dark:text-gray-100">
+    <!-- Sidebar -->
+    <aside id="sidebar"
+        class="w-[24rem] min-w-[24rem] bg-indigo-950 text-white flex flex-col p-6 min-h-screen transform transition-transform duration-500">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-extrabold">DineGO <i class="fas fa-shield-alt text-indigo-600"></i></h1>
+            <div class="flex items-center gap-3">
+                <img src="~/images/Avatar/@Context.Session.GetString("ad_image")" alt="Admin Avatar"
+                    class="w-14 h-14 rounded-full border-2 border-white object-cover object-center shadow cursor-pointer"
+                    onclick="openAvatarSettingModal(event)" />
+                <div>
+                    <div class="mt-1 font-semibold text-white max-w-[100px] truncate"
+                        title="@Context.Session.GetString("ad_name")">
+                        @(Context.Session.GetString("ad_name") ?? "Admin")
+                    </div>
+                    <div class="text-sm text-indigo-200">Quản trị viên</div>
+                </div>
+            </div>
+        </div>
+        <div class="mb-6">
+            <form onsubmit="return false;"
+                class="flex items-center bg-indigo-600 rounded px-3 py-2 shadow-md border border-indigo-400 relative">
+                <i class="fas fa-search text-indigo-200 mr-2"></i>
+                <input type="text" id="quick-feature-search" placeholder="Tìm kiếm tính năng..."
+                    class="bg-transparent outline-none text-white placeholder-indigo-200 w-full pr-8"
+                    autocomplete="off" />
+                <button type="button" id="clear-feature-search"
+                    class="absolute right-2 text-gray-300 hover:text-white focus:outline-none" style="display:none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </form>
+        </div>
+        <nav class="space-y-3 flex-1 overflow-y-auto pr-2">
+            <a href="/"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path == "/" ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-chart-line"></i>
+                Thống kê & Chỉ số
+            </a>
+            <div>
+                <button type="button" class="w-full flex items-center gap-2 px-4 py-2 rounded hover:bg-indigo-600 transition font-semibold focus:outline-none group
+                    @(isRestaurantActive ? "font-bold bg-indigo-600" : "")"
+                    onclick="toggleSubMenu('restaurant-submenu', this)">
+                    <i class="fas fa-utensils"></i>
+                    Quản lý nhà hàng
+                    <i
+                        class="fas fa-chevron-down ml-auto transition-transform duration-200 @(isRestaurantActive ? "rotate-180" : "")"></i>
+                </button>
+                <div id="restaurant-submenu" class="ml-8 mt-1 space-y-1 @(isRestaurantActive ? "" : "hidden")">
+                    <a href="/Restaurant"
+                        class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(Context.Request.Path == "/Restaurant" ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-store"></i> Danh sách nhà hàng
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" class="w-full flex items-center gap-2 px-4 py-2 rounded hover:bg-indigo-600 transition font-semibold focus:outline-none group
+                    @(isCustomerActive ? "font-bold bg-indigo-600" : "")"
+                    onclick="toggleSubMenu('customer-submenu', this)">
+                    <i class="fas fa-users"></i>
+                    Quản lý khách hàng
+                    <i
+                        class="fas fa-chevron-down ml-auto transition-transform duration-200 @(isCustomerActive ? "rotate-180" : "")"></i>
+                </button>
+                <div id="customer-submenu" class="ml-8 mt-1 space-y-1 @(isCustomerActive ? "" : "hidden")">
+                    <a href="/Customer"
+                        class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(isCustomerListActive ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-list"></i> Danh sách khách hàng
+                    </a>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="w-full flex items-center gap-2 px-4 py-2 rounded hover:bg-indigo-600 transition font-semibold focus:outline-none group
+                    @(isOwnerActive ? "font-bold bg-indigo-600" : "")" onclick="toggleSubMenu('owner-submenu', this)">
+                    <i class="fas fa-user-shield"></i>
+                    Quản lý chủ nhà hàng
+                    <i
+                        class="fas fa-chevron-down ml-auto transition-transform duration-200 @(isOwnerActive ? "rotate-180" : "")"></i>
+                </button>
+                <div id="owner-submenu" class="ml-8 mt-1 space-y-1 @(isOwnerActive ? "" : "hidden")">
+                    <a href="/RestaurantOwner"
+                        class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(isOwnerListActive ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-list"></i> Danh sách chủ nhà hàng
+                    </a>
+                    <a href="/Verification"
+                        class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(isBusinessLicenseActive ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-briefcase"></i> Danh sách giấy phép kinh doanh
+                    </a>
+                </div>
+            </div>
+            <a href="/Category"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path.StartsWithSegments("/Category") ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-list"></i>
+                Quản lý danh mục
+            </a>
+            <div>
+                <button type="button" class="w-full flex items-center gap-2 px-4 py-2 rounded hover:bg-indigo-600 transition font-semibold focus:outline-none group
+                    @(isOrderActive ? "font-bold bg-indigo-600" : "")" onclick="toggleSubMenu('order-submenu', this)">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    Quản lý hóa đơn
+                    <i
+                        class="fas fa-chevron-down ml-auto transition-transform duration-200 @(isOrderActive ? "rotate-180" : "")"></i>
+                </button>
+                <div id="order-submenu" class="ml-8 mt-1 space-y-1 @(isOrderActive ? "" : "hidden")">
+                    <a href="/Order"
+                        class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(Context.Request.Path.StartsWithSegments("/Order") ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-receipt"></i> Đơn đặt món ăn
+                    </a>
+                    <a href="/Reservation"
+                        class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(Context.Request.Path.StartsWithSegments("/Reservation") ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-chair"></i> Đơn đặt bàn
+                    </a>
+                    <a href="/Payment"
+                        class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(Context.Request.Path.StartsWithSegments("/Payment") ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-credit-card"></i> Quản lý đơn thanh toán
+                    </a>
+                </div>
+            </div>
+            <a href="/Blog"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path.StartsWithSegments("/BLog") ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-newspaper"></i>
+                Quản lý bài viết
+            </a>
+            <a href="/Voucher"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path.StartsWithSegments("/Voucher") ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-ticket-alt"></i>
+                Quản lý voucher
+            </a>
+            <a href="/Ad"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path.StartsWithSegments("/Ad") ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-ad"></i>
+                Quản lý quảng cáo
+            </a>
+            <a href="/Notification"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path.StartsWithSegments("/Notification") ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-bell"></i>
+                Quản lý thông báo
+            </a>
+            <div>
+                <button type="button"
+                    class="w-full flex items-center gap-2 px-4 py-2 rounded hover:bg-indigo-600 transition font-semibold focus:outline-none group
+                    @(Context.Request.Path.StartsWithSegments("/Post") ? "font-bold bg-indigo-600" : "")"
+                    onclick="toggleSubMenu('social-submenu', this)">
+                    <i class="fas fa-share-alt"></i>
+                    Mạng xã hội
+                    <i class="fas fa-chevron-down ml-auto transition-transform duration-200 @(Context.Request.Path.StartsWithSegments("/Post") ? "rotate-180" : "")"></i>
+                </button>
+                <div id="social-submenu" class="ml-8 mt-1 space-y-1 @(Context.Request.Path.StartsWithSegments("/Post") ? "" : "hidden")">
+                    <a href="/Post"
+                    class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(Context.Request.Path == "/Post" ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-newspaper"></i> Bài viết
+                    </a>
+                    <a href="/Post/PendingApproval"
+                    class="block px-2 py-1 rounded hover:bg-indigo-700 flex items-center gap-2 text-sm @(Context.Request.Path == "/Post/PendingApproval" ? "font-bold bg-indigo-700" : "")">
+                        <i class="fas fa-clock"></i> Chờ duyệt
+                    </a>
+                </div>
+            </div>
+            <a href="/Report"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path.StartsWithSegments("/Report") ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-exclamation-triangle"></i>
+                Báo cáo từ người dùng
+            </a>
+            <a href="/Contact"
+                class="block px-4 py-2 rounded hover:bg-indigo-600 flex items-center gap-2 @(Context.Request.Path.StartsWithSegments("/Contact") ? "font-bold bg-indigo-600" : "")">
+                <i class="fas fa-envelope"></i>
+                Liên hệ từ khách hàng
+            </a>
+        </nav>
+        <div class="flex items-center justify-start gap-4 mt-4">
+            <form action="/Auth/Logout" method="post" class="w-full">
+                <button type="submit"
+                    class="w-full px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded text-white font-semibold shadow-md border border-indigo-300 transition">
+                    Đăng xuất
+                </button>
+            </form>
+            <a href="/SystemLog" title="Nhật ký hoạt động" class="p-2 rounded-full hover:bg-indigo-600 transition">
+                <i class="fas fa-history text-xl"></i>
+            </a>
+            <a href="/Setting" title="Cài đặt hệ thống" class="p-2 rounded-full hover:bg-indigo-600 transition">
+                <i class="fas fa-cog text-xl"></i>
+            </a>
+        </div>
+    </aside>
+    @await Html.PartialAsync("_Notification")
+    <!-- Main Content -->
+    <main
+        class="flex-1 w-full min-w-0 p-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-500 flex justify-center">
+        <div class="w-full mx-auto max-h-screen overflow-y-auto">
+            @RenderBody()
+        </div>
+    </main>
+    <!-- Các script cần thiết -->
+    <!-- Modal chọn avatar -->
+    <div id="avatarSettingModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-[350px]">
+            <h2 class="text-lg font-bold mb-4 text-gray-800">Chọn Avatar</h2>
+            <div class="grid grid-cols-4 gap-3 mb-4">
+                @{
+                    var avatarDir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(),
+                    "wwwroot/images/Avatar");
+                    var avatarFiles = System.IO.Directory.Exists(avatarDir)
+                    ? System.IO.Directory.GetFiles(avatarDir).Select(f => System.IO.Path.GetFileName(f)).ToList()
+                    : new List<string>();
+                }
+                @foreach (var avatar in avatarFiles)
+                {
+                    <button type="button" class="focus:outline-none" onclick="selectAvatar('@avatar')">
+                        <img src="~/images/Avatar/@avatar"
+                            class="w-14 h-14 rounded-full border-2 border-white object-cover object-center shadow hover:ring-4 hover:ring-indigo-400 transition" />
+                    </button>
+                }
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeAvatarSettingModal()"
+                    class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800">Đóng</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="/js/site.js"></script>
+
+    <script src="/js/searchFeatureSystem.js"></script>
+    <script src="/js/updateAvatar.js"></script>
+    <script src="/js/notification.js"></script>
+    <script src="/js/tableResize.js"></script>
+    <script src="/js/openModal.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

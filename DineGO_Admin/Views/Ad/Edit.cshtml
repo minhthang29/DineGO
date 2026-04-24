@@ -1,0 +1,58 @@
+@model Core.Models.Client.Custom.AdSlotDto
+@{
+    ViewData["Title"] = "Thêm/Sửa Slot";
+    Layout = "../../Views/Shared/_Layout.cshtml";
+}
+
+<div class="max-w-xl mx-auto mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+    <h2 class="text-2xl font-bold text-center mb-6">
+        @((Model.slot_id == 0) ? "Thêm Slot Quảng cáo" : "Sửa Slot Quảng cáo")
+    </h2>
+
+    <form asp-action="Edit" method="post" class="space-y-5">
+        <input type="hidden" name="slot_id" value="@Model.slot_id" />
+
+        <div>
+            <label class="block font-semibold mb-1">Tên Slot</label>
+            <input name="slot_name" value="@Model.slot_name" class="text-black w-full border rounded px-3 py-2"
+                required />
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Loại Slot</label>
+            <select name="slot_type" class="text-black w-full border rounded px-3 py-2" required>
+                <option value="">-- Chọn loại --</option>
+                <option value="1" @(Model.slot_type == 1 ? "selected" : "")>Banner</option>
+                <option value="2" @(Model.slot_type == 2 ? "selected" : "")>Popup</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Giá thuê (VND)</label>
+            <div class="flex">
+                <input name="slot_price" type="number" step="1000" value="@Model.slot_price"
+                    class="flex-grow text-black border border-r-0 rounded-l px-3 py-2" required />
+                <span class="bg-gray-200 text-gray-700 px-3 py-2 rounded-r whitespace-nowrap">/ ngày</span>
+            </div>
+        </div>
+
+        <div>
+            <label class="block font-semibold mb-1">Trạng thái</label>
+            <select name="slot_is_active" class="text-black w-full border rounded px-3 py-2">
+                <option value="true" @(Model.slot_is_active ? "selected" : "")>Kích hoạt</option>
+                <option value="false" @(!Model.slot_is_active ? "selected" : "")>Không kích hoạt</option>
+            </select>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button type="submit"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition">
+                Lưu
+            </button>
+            <a href="@Url.Action("Index", "Ad")"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded text-center transition">
+                Hủy
+            </a>
+        </div>
+    </form>
+</div>

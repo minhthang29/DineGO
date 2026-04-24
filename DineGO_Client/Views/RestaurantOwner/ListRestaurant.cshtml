@@ -1,0 +1,75 @@
+@model Core.Models.Client.Custom.CustomRestaurantViewModel
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Danh sách nhà hàng";
+}
+
+<div class="flex-grow-1 p-4 bg-white rounded shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-danger">
+            <i class="fas fa-store-alt me-2"></i>DANH SÁCH NHÀ HÀNG
+        </h3>
+        <a class="btn btn-success fw-semibold" asp-action="CreateRestaurant" asp-controller="RestaurantOwner">
+            <i class="fas fa-plus me-1"></i>Thêm nhà hàng
+        </a>
+    </div>
+
+    @if (Model?.Restaurants == null || !Model.Restaurants.Any())
+    {
+        <div class="alert alert-warning text-center">
+            <i class="fas fa-exclamation-circle me-1"></i>Hiện chưa có nhà hàng nào được tạo.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var restaurant in Model.Restaurants)
+            {
+                if (restaurant == null)
+                {
+                    continue; // bỏ qua item null để tránh lỗi
+                }
+
+                <div class="col">
+                    <div class="card shadow-sm h-100">
+                        <img src="@(restaurant.res_images_json != null && restaurant.res_images_json.Any() 
+                            ? $"https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/restaurants/thumb_{restaurant.res_images_json.First()}" 
+                            : "/client/images/logo.jpg")"
+                        class="card-img-top"
+                        style="height: 200px; object-fit: cover;" />
+
+
+                        <div class="card-body">
+                            <h5 class="card-title text-danger fw-bold">
+                                @(restaurant.res_name ?? "Tên nhà hàng không xác định")
+                            </h5>
+
+                            <p class="card-text text-muted">
+                                @(restaurant.res_address ?? "Địa chỉ không rõ")
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                            <a asp-action="AccessRestaurant" asp-controller="RestaurantOwner" asp-route-res_id="@restaurant.res_id" class="btn btn-danger btn-sm">Truy cập</a>
+
+        <span class="ms-2" title="@(restaurant.res_is_authorized ? "Đã xác thực" : "Chưa xác thực")">
+            @if (restaurant.res_is_authorized)
+            {
+                <i class="fas fa-check-circle text-success"></i> <!-- ✅ Đã xác thực -->
+            }
+            else
+            {
+                <i class="fas fa-exclamation-circle text-secondary"></i> <!-- ❗ Chưa xác thực -->
+            }
+        </span>
+    </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+}

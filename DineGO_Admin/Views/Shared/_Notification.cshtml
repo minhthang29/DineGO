@@ -1,0 +1,43 @@
+@{
+    var success = TempData["SuccessMessage"] as string;
+    var error = TempData["ErrorMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(success))
+{
+    <div class="notification-box fixed top-6 right-6 z-50 flex flex-col gap-2 px-6 py-4 bg-green-100 border border-green-400 text-green-800 rounded-lg shadow-lg animate-fade-in-down min-w-[250px]">
+        <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span class="font-semibold">@success</span>
+            <button type="button" class="ml-auto text-green-700 hover:text-green-900 focus:outline-none" onclick="this.parentElement.parentElement.style.display='none'">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="notification-progress h-1 w-full bg-green-300 rounded overflow-hidden">
+            <div class="progress-bar h-full bg-green-500"></div>
+        </div>
+    </div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="notification-box fixed top-6 right-6 z-50 flex flex-col gap-2 px-6 py-4 bg-red-100 border border-red-400 text-red-800 rounded-lg shadow-lg animate-fade-in-down min-w-[250px]">
+        <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            <span class="font-semibold">@error</span>
+            <button type="button" class="ml-auto text-red-700 hover:text-red-900 focus:outline-none" onclick="this.parentElement.parentElement.style.display='none'">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="notification-progress h-1 w-full bg-red-300 rounded overflow-hidden">
+            <div class="progress-bar h-full bg-red-500"></div>
+        </div>
+    </div>
+}

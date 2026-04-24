@@ -1,0 +1,599 @@
+@model Core.Models.Blog
+
+@{
+    ViewData["Title"] = Model?.blog_title ?? "Không có dữ liệu";
+    string defaultImage = "https://storage.googleapis.com/a1aa/image/Ro3xNxdYoS1VIFlm3jZvR__ygEMTBN2cPDfSwWOTqtg.jpg";
+    string imageUrl = string.IsNullOrEmpty(Model?.blog_image) ? defaultImage : Model.blog_image;
+}
+
+<!-- Thêm Popper.js để fix lỗi Bootstrap dropdown -->
+<script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+<div class="container all-container">
+    <div class="row">
+        <!-- Nội dung chính -->
+        <div class="col-lg-8">
+            <div class="blog-container">
+                <div class="blog-section">
+                    <div class="d-flex justify-content-between align-items-end mb-3">
+                        
+                        <!-- Nút điều khiển đọc văn bản -->
+                        <div class="speech-controls">
+                            <div class="btn-group" role="group">
+                                <button id="playBtn" class="btn btn-outline-primary btn-sm" title="Đọc văn bản">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button id="pauseBtn" class="btn btn-outline-warning btn-sm" title="Tạm dừng" disabled>
+                                    <i class="fas fa-pause"></i>
+                                </button>
+                                <button id="stopBtn" class="btn btn-outline-danger btn-sm" title="Dừng hoàn toàn" disabled>
+                                    <i class="fas fa-stop"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="voiceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-microphone me-1"></i>
+                                    <span id="selectedVoiceText">Chọn giọng</span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="voiceDropdown" id="voiceDropdownMenu">
+                                    <li><span class="dropdown-item-text text-muted">Đang tải...</span></li>
+                                </ul>
+                            </div>
+                            
+                            <small id="voiceStatus" class="text-muted"></small>
+                        </div>
+                    </div>
+                    <h3>@Model?.blog_title</h3>
+                    <p><strong>Ngày đăng:</strong> @Model?.blog_date.ToString("dd/MM/yyyy")</p>
+                    <div id="blogContent">
+                        <p>@Html.Raw(Model?.blog_information)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="blog-container">
+                <h3>Blog mới</h3>
+                <div class="blog-item mt-4">
+                    <img src="https://storage.googleapis.com/a1aa/image/jyZGnwMle-G8xxriJzKkW3pn_15sh4dKAE8cM8iAauI.jpg" alt="Marketing">
+                    <div class="blog-content">
+                        <h3>Tăng doanh thu nhà hàng</h3>
+                        <p>15/01/2025</p>
+                        <p>25+ chiến lược marketing đỉnh cao...</p>
+                    </div>
+                </div>
+                <div class="blog-item">
+                    <img src="https://storage.googleapis.com/a1aa/image/NsAYbrGgbAnf4eynZgHAN2vqXGsQn10K_u6-uujH6L0.jpg" alt="Thực đơn">
+                    <div class="blog-content">
+                        <h3>Thực đọn hàng ngày đầy đủ dinh dưỡng</h3>
+                        <p>19/12/2024</p>
+                        <p>Có ảnh minh họa...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+</div>
+
+<style>
+.speech-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.speech-controls .btn-group {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 6px;
+}
+
+.speech-controls .btn {
+    border-radius: 0;
+    min-width: 36px;
+    height: 32px;
+    padding: 4px 8px;
+    transition: all 0.2s ease;
+}
+
+.speech-controls .btn:first-child {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.speech-controls .btn:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.speech-controls .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.speech-controls .btn:active {
+    transform: translateY(0);
+}
+
+.speech-controls .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.speech-controls .dropdown-toggle {
+    border-radius: 6px !important;
+    min-width: 120px;
+    height: 32px;
+    padding: 4px 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.speech-controls .dropdown-toggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.speech-controls .dropdown-menu {
+    min-width: 220px;
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid #e9ecef;
+}
+
+.speech-controls .dropdown-item {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.speech-controls .dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.speech-controls .dropdown-item.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.speech-controls .dropdown-item .badge {
+    float: right;
+    margin-top: 2px;
+}
+
+.reading-highlight {
+    background-color: #fff3cd !important;
+    border-left: 4px solid #ffc107;
+    padding-left: 16px;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+#voiceStatus {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+@@media (max-width: 768px) {
+    .speech-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .speech-controls .btn-group,
+    .speech-controls .dropdown {
+        width: 100%;
+    }
+    
+    .speech-controls .dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+/* Loading animation */
+.loading-dots::after {
+    content: '';
+    animation: dots 1.5s infinite;
+}
+
+@@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kiểm tra hỗ trợ Speech Synthesis
+    if (!('speechSynthesis' in window)) {
+        alert('Trình duyệt của bạn không hỗ trợ tính năng đọc văn bản!');
+        return;
+    }
+
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const voiceDropdown = document.getElementById('voiceDropdown');
+    const voiceDropdownMenu = document.getElementById('voiceDropdownMenu');
+    const selectedVoiceText = document.getElementById('selectedVoiceText');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const blogContent = document.getElementById('blogContent');
+    
+    let voices = [];
+    let currentUtterance = null;
+    let isPlaying = false;
+    let isPaused = false;
+    let selectedVoiceIndex = -1;
+
+    // Hàm dọn dẹp speech synthesis
+    function cleanupSpeech() {
+        if (speechSynthesis.speaking || speechSynthesis.pending) {
+            speechSynthesis.cancel();
+        }
+        currentUtterance = null;
+        isPlaying = false;
+        isPaused = false;
+        blogContent.classList.remove('reading-highlight');
+        updateButtonStates();
+    }
+
+    // Load voices theo pattern mẫu
+    function loadVoices() {
+        voices = speechSynthesis.getVoices();
+        
+        voiceDropdownMenu.innerHTML = '';
+        
+        if (voices.length === 0) {
+            voiceDropdownMenu.innerHTML = '<li><span class="dropdown-item-text text-muted">Không có giọng đọc</span></li>';
+            voiceStatus.innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i>Không có giọng';
+            return;
+        }
+
+        let vietnameseVoiceIndex = -1;
+        let bestVietnameseVoice = -1;
+        
+        // Tạo các nhóm giọng đọc
+        const voiceGroups = {
+            vietnamese: [],
+            english: [],
+            other: []
+        };
+
+        voices.forEach((voice, index) => {
+            const voiceData = {
+                index: index,
+                name: voice.name,
+                lang: voice.lang,
+                isLocal: voice.localService,
+                voice: voice
+            };
+
+            // Mở rộng detection cho tiếng Việt (bao gồm Microsoft An)
+            const voiceName = voice.name.toLowerCase();
+            const voiceLang = voice.lang.toLowerCase();
+            
+            const isVietnamese = 
+                voiceLang.includes('vi') ||
+                voiceLang === 'vi-vn' ||
+                voiceLang === 'vi' ||
+                voiceName.includes('vietnam') ||
+                voiceName.includes('vietnamese') ||
+                voiceName.includes('an') ||  // Microsoft An
+                voiceName.includes('microsoft an') ||
+                voiceName.includes('tiếng việt') ||
+                voiceName.includes('viet');
+
+            if (isVietnamese) {
+                voiceGroups.vietnamese.push(voiceData);
+                if (vietnameseVoiceIndex === -1) {
+                    vietnameseVoiceIndex = index;
+                }
+                // Ưu tiên Microsoft An
+                if (voiceName.includes('an') || voiceName.includes('microsoft')) {
+                    bestVietnameseVoice = index;
+                }
+            } else if (voiceLang.includes('en')) {
+                voiceGroups.english.push(voiceData);
+            } else {
+                voiceGroups.other.push(voiceData);
+            }
+        });
+
+        // Tạo dropdown menu
+        function createVoiceItem(voiceData) {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'dropdown-item d-flex justify-content-between align-items-center';
+            a.href = '#';
+            a.dataset.voiceIndex = voiceData.index;
+            
+            const voiceName = voiceData.name.length > 30 ? voiceData.name.substring(0, 30) + '...' : voiceData.name;
+            
+            // Highlight Microsoft An hoặc giọng Việt
+            const isMicrosoftAn = voiceData.name.toLowerCase().includes('an');
+            const nameClass = isMicrosoftAn ? 'text-primary fw-bold' : '';
+            
+            a.innerHTML = `
+                <div>
+                    <div class="${nameClass}">${voiceName}</div>
+                    <small class="text-muted">${voiceData.lang}</small>
+                </div>
+            `;
+            
+            if (voiceData.isLocal) {
+                a.innerHTML += '<span class="badge bg-success ms-2">Local</span>';
+            } else {
+                a.innerHTML += '<span class="badge bg-info ms-2">Online</span>';
+            }
+            
+            // Special badge for Microsoft An
+            if (isMicrosoftAn) {
+                a.innerHTML += '<span class="badge bg-primary ms-1">⭐</span>';
+            }
+            
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                selectVoice(voiceData.index, voiceData.name);
+                // Đóng dropdown
+                try {
+                    const dropdown = bootstrap.Dropdown.getInstance(voiceDropdown);
+                    if (dropdown) dropdown.hide();
+                } catch (e) {
+                    console.log('Bootstrap dropdown not available');
+                }
+            });
+            
+            li.appendChild(a);
+            return li;
+        }
+
+        // Thêm giọng tiếng Việt
+        if (voiceGroups.vietnamese.length > 0) {
+            const header = document.createElement('li');
+            header.innerHTML = '<h6 class="dropdown-header"><i class="fas fa-flag text-danger me-2"></i>🇻🇳 Tiếng Việt</h6>';
+            voiceDropdownMenu.appendChild(header);
+            
+            // Sắp xếp để Microsoft An lên đầu
+            voiceGroups.vietnamese.sort((a, b) => {
+                const aIsMicrosoftAn = a.name.toLowerCase().includes('an');
+                const bIsMicrosoftAn = b.name.toLowerCase().includes('an');
+                if (aIsMicrosoftAn && !bIsMicrosoftAn) return -1;
+                if (!aIsMicrosoftAn && bIsMicrosoftAn) return 1;
+                return 0;
+            });
+            
+            voiceGroups.vietnamese.forEach(voice => {
+                voiceDropdownMenu.appendChild(createVoiceItem(voice));
+            });
+            
+            if (voiceGroups.english.length > 0 || voiceGroups.other.length > 0) {
+                const divider = document.createElement('li');
+                divider.innerHTML = '<hr class="dropdown-divider">';
+                voiceDropdownMenu.appendChild(divider);
+            }
+        }
+
+        // Thêm giọng tiếng Anh
+        if (voiceGroups.english.length > 0) {
+            const header = document.createElement('li');
+            header.innerHTML = '<h6 class="dropdown-header"><i class="fas fa-flag text-primary me-2"></i>🇺🇸 Tiếng Anh</h6>';
+            voiceDropdownMenu.appendChild(header);
+            
+            voiceGroups.english.slice(0, 8).forEach(voice => {
+                voiceDropdownMenu.appendChild(createVoiceItem(voice));
+            });
+        }
+
+        // Thêm tất cả giọng khác để debug
+        if (voiceGroups.other.length > 0) {
+            const divider = document.createElement('li');
+            divider.innerHTML = '<hr class="dropdown-divider">';
+            voiceDropdownMenu.appendChild(divider);
+            
+            const header = document.createElement('li');
+            header.innerHTML = '<h6 class="dropdown-header"><i class="fas fa-globe text-secondary me-2"></i>🌍 Tất cả giọng khác</h6>';
+            voiceDropdownMenu.appendChild(header);
+            
+            voiceGroups.other.forEach(voice => {
+                voiceDropdownMenu.appendChild(createVoiceItem(voice));
+            });
+        }
+
+        // Chọn giọng mặc định - ưu tiên Microsoft An
+        if (vietnameseVoiceIndex !== -1) {
+            selectVoice(vietnameseVoiceIndex, voices[vietnameseVoiceIndex].name);
+            voiceStatus.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Tìm thấy giọng Việt';
+        } else {
+            // Fallback to first available voice
+            if (voices.length > 0) {
+                selectVoice(0, voices[0].name);
+            }
+            voiceStatus.innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i>Không tìm thấy giọng Việt';
+        }
+    }
+
+    // Chọn giọng đọc
+    function selectVoice(index, name) {
+        selectedVoiceIndex = index;
+        const voice = voices[index];
+        
+        if (!voice) return;
+        
+        // Cập nhật text hiển thị
+        const displayName = name.length > 15 ? name.substring(0, 15) + '...' : name;
+        selectedVoiceText.textContent = displayName;
+        
+        // Cập nhật active state
+        voiceDropdownMenu.querySelectorAll('.dropdown-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        const selectedItem = voiceDropdownMenu.querySelector(`[data-voice-index="${index}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('active');
+        }
+        
+        // Cập nhật status
+        if (voice.lang.toLowerCase().includes('vi')) {
+            voiceStatus.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Tiếng Việt';
+        } else if (voice.lang.toLowerCase().includes('en')) {
+            voiceStatus.innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i>Tiếng Anh';
+        } else {
+            voiceStatus.innerHTML = `<i class="fas fa-info-circle text-info me-1"></i>${voice.lang}`;
+        }
+    }
+
+    // Thiết lập event listener theo pattern mẫu
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+
+    // Lấy text từ nội dung blog
+    function getTextContent() {
+        const title = '@Html.Raw(Model?.blog_title?.Replace("\"", "\\\"").Replace("'", "\\'"))';
+        const content = blogContent.innerText || blogContent.textContent;
+        
+        let cleanText = `${title}. ${content}`;
+        cleanText = cleanText.replace(/\s+/g, ' ').trim();
+        
+        if (cleanText.length > 3000) {
+            cleanText = cleanText.substring(0, 3000) + '...';
+        }
+        
+        return cleanText;
+    }
+
+    // Đọc văn bản theo pattern mẫu
+    function speak() {
+        try {
+            if (isPaused) {
+                speechSynthesis.resume();
+                isPaused = false;
+                updateButtonStates();
+                return;
+            }
+
+            cleanupSpeech();
+
+            const text = getTextContent();
+            if (!text || text.trim() === '') {
+                alert('Không có nội dung để đọc!');
+                return;
+            }
+
+            // Tạo utterance theo pattern mẫu
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            
+            // Chọn giọng đã selected
+            if (selectedVoiceIndex !== -1 && voices[selectedVoiceIndex]) {
+                currentUtterance.voice = voices[selectedVoiceIndex];
+            }
+
+            currentUtterance.rate = 0.85;
+            currentUtterance.volume = 1;
+            currentUtterance.pitch = 1;
+
+            currentUtterance.onstart = function() {
+                isPlaying = true;
+                isPaused = false;
+                updateButtonStates();
+                blogContent.classList.add('reading-highlight');
+                console.log('Started speaking with voice:', currentUtterance.voice?.name || 'default');
+            };
+
+            currentUtterance.onend = function() {
+                console.log('Finished speaking');
+                cleanupSpeech();
+            };
+
+            currentUtterance.onerror = function(event) {
+                console.error('Speech synthesis error:', event);
+                if (event.error !== 'interrupted') {
+                    alert('Có lỗi xảy ra khi đọc văn bản: ' + event.error);
+                }
+                cleanupSpeech();
+            };
+
+            // Speak theo pattern mẫu
+            speechSynthesis.speak(currentUtterance);
+
+        } catch (error) {
+            console.error('Error in speak function:', error);
+            cleanupSpeech();
+            alert('Có lỗi xảy ra khi khởi tạo đọc văn bản!');
+        }
+    }
+
+    // Tạm dừng
+    function pause() {
+        try {
+            if (isPlaying && !isPaused) {
+                speechSynthesis.pause();
+                isPaused = true;
+                updateButtonStates();
+            }
+        } catch (error) {
+            console.error('Error in pause function:', error);
+            cleanupSpeech();
+        }
+    }
+
+    // Dừng hoàn toàn
+    function stop() {
+        try {
+            cleanupSpeech();
+        } catch (error) {
+            console.error('Error in stop function:', error);
+            cleanupSpeech();
+        }
+    }
+
+    // Cập nhật trạng thái nút
+    function updateButtonStates() {
+        playBtn.disabled = isPlaying && !isPaused;
+        pauseBtn.disabled = !isPlaying || isPaused;
+        stopBtn.disabled = !isPlaying;
+        
+        if (isPaused) {
+            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            playBtn.title = 'Tiếp tục đọc';
+            playBtn.classList.remove('btn-success');
+            playBtn.classList.add('btn-outline-primary');
+        } else if (isPlaying) {
+            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            playBtn.title = 'Đang đọc...';
+            playBtn.classList.remove('btn-outline-primary');
+            playBtn.classList.add('btn-success');
+        } else {
+            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            playBtn.title = 'Đọc văn bản';
+            playBtn.classList.remove('btn-success');
+            playBtn.classList.add('btn-outline-primary');
+        }
+    }
+
+    // Gán sự kiện
+    playBtn.addEventListener('click', speak);
+    pauseBtn.addEventListener('click', pause);
+    stopBtn.addEventListener('click', stop);
+
+    // Cleanup events
+    window.addEventListener('beforeunload', cleanupSpeech);
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && isPlaying) {
+            cleanupSpeech();
+        }
+    });
+});
+</script>

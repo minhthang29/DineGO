@@ -1,0 +1,66 @@
+@model List<Core.Models.Client.Custom.AdSlotDto>
+@{
+    Layout = "~/Views/Shared/_ResOwnerPanel.cshtml";
+    ViewData["Title"] = "Slot có thể thuê";
+}
+
+<div class="col-md-12">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Slot có thể thuê</h4>
+            <div>
+                <a href="@Url.Action("ActiveAds", "RestaurantOwner")" class="btn btn-light btn-sm me-2">
+                    <i class="bi bi-play-circle"></i> Quảng cáo đang chạy
+                </a>
+                <a href="@Url.Action("InactiveAds", "RestaurantOwner")" class="btn btn-light btn-sm">
+                    <i class="bi bi-archive"></i> Quảng cáo đã hết hạn
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-danger">❗ Hiện không có slot nào trống để thuê.</div>
+            }
+            else
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3 text-danger">Danh sách slot còn trống</h5>
+
+                        <!-- Trượt ngang -->
+                        <div class="d-flex flex-row flex-nowrap overflow-auto pb-2" style="gap: 1rem;">
+                            @foreach (var slot in Model)
+                            {
+                                <div class="card shadow-sm border-0" style="min-width: 240px; flex: 0 0 auto;">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-danger">@slot.slot_name</h6>
+
+                                        <p class="mb-1 small text-muted">
+                                            <i class="bi bi-tags me-1"></i>
+                                            Loại: @(slot.slot_type == 1 ? "Banner" : "Popup")
+                                        </p>
+
+                                        <p class="mb-1 small text-muted">
+                                            <i class="bi bi-cash-stack me-1"></i>
+                                            Giá: @slot.slot_price.ToString("N0") VND/ngày
+                                        </p>
+
+                                        <div class="text-center mt-3">
+                                            <a asp-action="RegisterAd" asp-controller="RestaurantOwner"
+                                               asp-route-slotId="@slot.slot_id"
+                                               class="btn btn-danger btn-sm w-100">
+                                                <i class="bi bi-bag-plus"></i> Thuê slot này
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

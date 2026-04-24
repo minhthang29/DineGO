@@ -1,0 +1,95 @@
+@model Core.Models.Client.Custom.MenuWithRestaurantViewModel
+
+@{
+    ViewData["Title"] = "ListMenu";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+}
+@{
+    var resId = Model?.Restaurant?.res_id ?? 0; 
+}
+
+
+<div class="container py-4" style="position: relative; top: -1px; min-height: 450px;">
+    <div class="menu-wrapper shadow rounded-3 p-4 bg-white">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-danger">
+                <i class="bi bi-clipboard2-check-fill me-2"></i>
+                DANH SÁCH MENU - @Model.Restaurant.res_name
+            </h3>
+            <a class="btn btn-danger shadow-sm" asp-action="Create" asp-route-res_id="@resId">📝 Thêm Menu</a>
+        </div>
+
+        @if (!Model.Menus.Any())
+        {
+            <div class="alert alert-warning">Chưa có menu nào!</div>
+        }
+        else
+        {
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-danger sticky-top">
+                        <tr>
+                            <th scope="col">Tên Menu</th>
+                            <th scope="col">Loại</th>
+                            <th scope="col">Ảnh</th>
+                            <th scope="col">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Menus)
+                        {
+                            <tr>
+                                <td>@item.menu_name</td>
+                                <td>@item.menu_type</td>
+                                <td>
+                                    @foreach (var img in item.menu_images)
+                                    {
+                                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/menus/thumb_@img"
+                                            class="img-thumbnail me-2" style="height: 100px; cursor: zoom-in;"
+                                            onclick="showFullImage('https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/menus/full_@img')"
+                                            onerror="this.onerror=null; this.src='https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/menus/default.jpeg';" />
+                                    }
+                                </td>
+                              <td>
+    <a asp-action="Edit" asp-route-id="@item.menu_id" class="btn btn-warning btn-sm">Sửa</a>
+
+    @if (Model.MenuFoodCounts[item.menu_id] == 0)
+    {
+        <a asp-action="Delete" asp-route-id="@item.menu_id" class="btn btn-danger btn-sm">Xoá</a>
+    }
+    else
+    {
+        <button class="btn btn-secondary btn-sm" disabled
+                title="Không thể xoá, menu vẫn còn món">Xoá</button>
+    }
+
+    <a class="btn btn-primary btn-sm" asp-controller="Food" asp-action="ManageByMenu"
+       asp-route-menuId="@item.menu_id">
+       Quản lý món
+    </a>
+</td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div> <!-- end menu-wrapper -->
+
+    <!-- Modal to display full image -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark">
+                <div class="modal-body p-0">
+                    <img id="modalImage" src="" class="img-fluid w-100"
+                        style="max-height: 80vh; object-fit: contain;" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="/client/js/imagePreview.js" asp-append-version="true"></script>

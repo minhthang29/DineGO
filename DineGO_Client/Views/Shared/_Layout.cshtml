@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DineGO_Client</title>
+    <link rel="icon" type="image/png" href="/common/images/logo.png" />
+
+    <link rel="stylesheet" href="/common/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="/common/lib/slider/owl.carousel.min.css" />
+    <link rel="stylesheet" href="/common/lib/slider/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="/common/css/popup.css" />
+    <link rel="stylesheet" href="/common/css/notification.css" />
+    <link rel="stylesheet" href="/client/css/site.css" />
+    <link rel="stylesheet" href="/client/css/post.css" />
+    <link rel="stylesheet" href="/common/css/chat.css" />
+    <link rel="stylesheet" href="/common/css/add_image.css" />
+    <link rel="stylesheet" href="/common/css/loading.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+</head>
+
+<body>
+
+    <header>
+        @Html.Partial("_Header")
+    </header>
+
+
+    @Html.Partial("_ConfirmDeletePopup")
+    <main role="main" class="pb-3">
+        @RenderBody()
+        @*Common notification*@ @await Html.PartialAsync("_Notification")
+
+        @if (!Context.Request.Cookies.ContainsKey("CookieConsent"))
+        {
+            <div id="cookie-consent-banner" class="fixed-bottom bg-light shadow-lg border-top border-2 py-4"
+                style="font-size: 1.2rem; z-index: 1055; box-shadow: 0 -4px 20px rgba(0,0,0,0.25);">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <!-- Content -->
+                        <div class="col-md-8">
+                            <span class="fw-semibold text-dark">
+                                🍪 Website muốn sử dụng cookie để lưu vị trí của bạn và cải thiện trải nghiệm người dùng.
+                            </span>
+                        </div>
+                        <!-- Button-->
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-danger btn-lg px-4 fw-bold shadow-sm me-2" onclick="acceptCookies()">
+                                Chấp nhận
+                            </button>
+                            <button class="btn btn-outline-secondary btn-lg px-4 fw-bold shadow-sm"
+                                onclick="rejectCookies()">
+                                Từ chối
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        }
+    </main>
+
+    @* Loading *@
+    <div id="global-overlay" class="d-none">
+        <div id="global-loader">
+            <div id="loading-text">
+                <span class="loading-word">Loading</span>
+                 <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span> <!-- Dấu chấm sẽ animate nhảy trái-phải -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        @Html.Partial("_Footer")
+        <div class="chat-ai-button">
+            <a href="javascript:void(0);" class="btn-chat-ai d-flex align-items-center justify-content-center"
+                onclick="toggleChat()">
+                <i class="fas fa-robot"></i>
+            </a>
+        </div>
+        <div>
+            <!-- Nút mở lại cấu hình cookie -->
+            <button id="reopen-cookie-settings"
+                class="position-fixed bottom-0 start-0 mb-3 ms-3 btn btn-outline-dark btn-sm shadow-sm"
+                style="z-index:1029;" onclick="reopenCookieBanner()">
+                ⚙️ Cookie Settings
+            </button>
+
+        </div>
+    </footer>
+    <div id="chat-ai-dialog" class="chat-ai-dialog">
+        <div class="chat-ai-header">
+            <span>AI Bot</span>
+            <button onclick="toggleChat()" class="close-chat-ai">&times;</button>
+        </div>
+        <div class="chat-ai-body">
+            <div class="message response-message" id="typing-message0">
+                <p></p>
+            </div>
+        </div>
+        <div class="chat-ai-footer">
+            <input type="text" placeholder="Type your message...">
+            <button><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+    <!-- Nút lên đầu trang, căn phải, bo tròn, nổi bật -->
+    <button type="button" id="scrollToTopBtn"
+        class="btn btn-danger btn-lg rounded-circle position-fixed d-flex align-items-center justify-content-center"
+        style="bottom: 30px; right: 30px; z-index: 999; width: 56px; height: 56px; display: none;">
+        <i class="bi bi-arrow-up fs-4"></i>
+    </button>
+    <script src="/common/js/moveUp.js"></script>
+    <script src="/common/js/add_image.js"></script>
+    <script src="/common/js/popup.js"></script>
+    <script src="/common/js/notification.js"></script>
+    <script src="/common/js/chat.js"></script>
+    <script src="/common/lib/jquery/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+    <script src="/common/lib/bootstrap/bootstrap.min.js"></script>
+    <script src="/common/lib/slider/owl.carousel.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="/client/js/Cookies.js" asp-append-version="true"></script>
+    <script src="/client/js/site.js" asp-append-version="true"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="/client/js/GoogleAccountService.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="/client/js/chat.js" asp-append-version="true"></script>
+    <script src="~/common/js/notificationIcon.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

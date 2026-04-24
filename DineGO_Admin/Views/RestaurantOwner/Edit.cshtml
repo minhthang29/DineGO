@@ -1,0 +1,37 @@
+@model Core.Models.RestaurantOwner
+@{
+    ViewData["Title"] = "Chỉnh sửa Chủ Nhà Hàng";
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    var customers = ViewBag.Customers as List<Core.Models.Customer>;
+}
+
+<div class="max-w-xl mx-auto mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+    <h2 class="text-2xl font-bold text-center mb-6">Chỉnh sửa Chủ Nhà Hàng</h2>
+    <form asp-action="Edit" method="post" class="space-y-5">
+        <input type="hidden" name="res_owner_id" value="@Model.res_owner_id" />
+        <input type="hidden" name="res_owner_created_date" value="@Model.res_owner_created_date" />
+        <div>
+            <label class="block font-semibold mb-1">Chọn khách hàng</label>
+            <select name="cus_id" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" required>
+                <option value="@Model.customer?.cus_username">-- Chọn khách hàng --</option>
+                @if (customers != null)
+                {
+                    foreach (var cus in customers)
+                    {
+                        <option value="@cus.cus_id" @(cus.cus_id == Model.cus_id ? "selected" : "")>
+                            @cus.cus_username (@cus.cus_name)
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+        <div>
+            <label class="block font-semibold mb-1">Tên chủ nhà hàng</label>
+            <input type="text" name="res_owner_name" class="text-black w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-indigo-500" value="@Model.res_owner_name" required />
+        </div>
+        <div class="flex gap-3 mt-6">
+            <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded transition">Lưu</button>
+            <a href="@Url.Action("Index", "RestaurantOwner")" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded text-center transition">Hủy</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,79 @@
+@model Core.Models.Client.Custom.CustomProfileViewModel
+@{
+    Layout = "../../Views/Shared/_Profile.cshtml";
+    ViewData["Title"] = "Đổi điểm lấy voucher";
+}
+
+@{
+    var redeem = Model.Data["Redeem"] as Core.Models.Client.Custom.VoucherPointViewmodel.VoucherListResponse;
+}
+
+<div class="col-md-9">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Đổi điểm lấy voucher</h4>
+            <a asp-action="VoucherOwned" class="btn btn-light btn-sm">
+                <i class="bi bi-arrow-left"></i> Quay lại Voucher
+            </a>
+        </div>
+        <div class="card-body">
+            <!-- Hiển thị số dư điểm -->
+            <div class="card shadow-sm mb-4 text-center border-danger">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">Số dư điểm của bạn</h5>
+                    <p class="display-6 text-danger fw-bold">@redeem?.CustomerBalance</p>
+                </div>
+            </div>
+
+            @if (redeem?.Vouchers == null || !redeem.Vouchers.Any())
+            {
+                <div class="alert alert-danger">❗ Hiện chưa có voucher nào khả dụng.</div>
+            }
+            else
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3 text-danger">Danh sách voucher</h5>
+                        <div class="d-flex flex-row flex-nowrap overflow-auto pb-2" style="gap: 1rem;">
+                            @foreach (var v in redeem.Vouchers)
+                            {
+                                <div class="card shadow-sm border-0" style="min-width: 260px; flex: 0 0 auto;">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-danger">@v.voucher_code</h5>
+                                        <p>
+                                            <strong>Giảm:</strong>
+                                            @if (v.voucher_type == 0)
+                                            {
+                                                @($"{(int)v.voucher_discount}%")
+                                            }
+                                            else if (v.voucher_type == 1)
+                                            {
+                                                @($"{v.voucher_discount:N0} VND")
+                                            }
+                                        </p>
+                                        <p><strong>HSD:</strong> @v.voucher_start_date.ToString("dd/MM/yyyy") -
+                                            @v.voucher_end_date.ToString("dd/MM/yyyy")</p>
+                                        <p><strong>Cần:</strong> @v.required_points điểm</p>
+                                        <p><strong>Còn:</strong> @(v.voucher_stock?.ToString() ?? "∞")</p>
+
+                                        @if (redeem.CustomerBalance >= (v.required_points ?? int.MaxValue))
+                                        {
+                                            <form asp-action="RedeemVoucher" method="post">
+                                                <input type="hidden" name="VoucherId" value="@v.voucher_id" />
+                                                <button type="submit" class="btn btn-danger w-100">Đổi ngay</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">⚠ Không đủ điểm</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

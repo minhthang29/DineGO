@@ -1,0 +1,266 @@
+@model List<Core.Models.Voucher>
+
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Voucher";
+}
+
+<h2 class="text-2xl font-bold mb-6">Quản lý Voucher</h2>
+<div class="mb-4 flex justify-between items-center">
+    <a href="@Url.Action("Create", "Voucher")"
+        class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <i class="fas fa-plus"></i> Thêm Voucher
+    </a>
+    <a href="@Url.Action("UpdatePoints", "Voucher")"
+        class="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+        <i class="fas fa-coins"></i> Cộng điểm cho KH
+    </a>
+    <!-- Nút xem lịch sử điểm -->
+    <a href="@Url.Action("Histories", "Voucher")" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium
+          text-white bg-gradient-to-r from-green-500 to-emerald-600
+          rounded-full shadow-md hover:from-green-600 hover:to-emerald-700
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition">
+        <i class="fas fa-history"></i>
+        <span>Xem lịch sử tích điểm</span>
+    </a>
+</div>
+
+<div class="overflow-x-auto shadow-lg rounded-lg">
+    <table class="min-w-full bg-white dark:bg-gray-800">
+        <thead class="bg-indigo-600 text-white">
+            <tr>
+                <th class="px-6 py-3 text-left">ID</th>
+                <th class="px-6 py-3 text-left">Mã</th>
+                <th class="px-6 py-3 text-left">Giá trị</th>
+                <th class="px-6 py-3 text-left">Loại</th>
+                <th class="px-6 py-3 text-left">Tổng phát hành</th> <!-- ✅ Đổi tên cột -->
+                <th class="px-6 py-3 text-left">Điểm yêu cầu</th>
+                <th class="px-6 py-3 text-left">Ngày bắt đầu</th>
+                <th class="px-6 py-3 text-left">Ngày hết hạn</th>
+                <th class="px-6 py-3 text-left">Trạng thái</th>
+                <th class="px-6 py-3 text-left">Áp dụng cho</th>
+                <th class="px-6 py-3 text-left">Hành động</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            @foreach (var v in Model)
+            {
+                var totalIssued = v.customerVouchers?.Sum(cv => cv.customer_voucher_quantity) ?? 0;
+                var uniqueCustomers = v.customerVouchers?.Select(cv => cv.cus_id).Distinct().Count() ?? 0;
+
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <td class="px-6 py-4">@v.voucher_id</td>
+                    <td class="px-6 py-4 font-semibold">@v.voucher_code</td>
+                    <td class="px-6 py-4">
+                        @if (v.voucher_type == 0)
+                        {
+                            <span class="text-green-600 font-semibold">@($"{v.voucher_discount}%")</span>
+                            @if (v.voucher_cap_amount.HasValue)
+                            {
+                                <small class="text-gray-500 block">
+                                    (tối đa @($"{v.voucher_cap_amount:N0}") VND)
+                                </small>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-blue-600 font-semibold">@($"{v.voucher_discount:N0} VND")</span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        @if (v.voucher_type == 0)
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                <i class="fas fa-percentage mr-1"></i>
+                                Phần trăm
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                <i class="fas fa-dollar-sign mr-1"></i>
+                                Số tiền
+                            </span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            @if (v.voucher_apply_type != 1)
+                            {
+                                <span class="text-lg font-semibold text-purple-600">@v.voucher_stock</span>
+                                <small class="text-gray-500">
+                                    cho @uniqueCustomers khách hàng
+                                </small>
+                            }
+                            else
+                            {
+                                <small class="text-purple-500">
+                                    <i class="fas fa-user-tag"></i> Khách hàng cụ thể
+                                </small>
+                            }
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        @if (v.required_points.HasValue && v.required_points > 0)
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                                <i class="fas fa-star mr-1"></i>
+                                @(v.required_points) điểm
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-gray-500">Miễn phí</span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm">
+                            @v.voucher_start_date.ToString("dd/MM/yyyy")
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm">
+                            @v.voucher_end_date.ToString("dd/MM/yyyy")
+                            @if (v.voucher_end_date < DateTime.Now)
+                            {
+                                <small class="block text-red-500">
+                                    <i class="fas fa-clock"></i> Hết hạn
+                                </small>
+                            }
+                            else if (v.voucher_end_date <= DateTime.Now.AddDays(7))
+                            {
+                                <small class="block text-orange-500">
+                                    <i class="fas fa-exclamation-triangle"></i> Sắp hết hạn
+                                </small>
+                            }
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        @if (v.voucher_is_active)
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Hoạt động
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
+                                <i class="fas fa-times-circle mr-1"></i>
+                                Không hoạt động
+                            </span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        @{
+                            string applyType = v.voucher_apply_type switch
+                            {
+                                0 => "Tất cả",
+                                1 => "Khách hàng cụ thể",
+                                2 => "Khác",
+                                _ => "Không xác định"
+                            };
+                        }
+                        
+                        @if (v.voucher_apply_type == 0)
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                <i class="fas fa-users mr-1"></i>
+                                @applyType
+                            </span>
+                        }
+                        else if (v.voucher_apply_type == 1)
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                                <i class="fas fa-user mr-1"></i>
+                                @applyType
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                                @applyType
+                            </span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex space-x-3 text-lg">
+                            <a href="@Url.Action("Edit", "Voucher", new { id = v.voucher_id })"
+                                class="text-blue-600 hover:text-blue-800" title="Chỉnh sửa">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            
+                            <!-- Nút xem chi tiết phân phối -->
+                            <a href="@Url.Action("ViewDistribution", "Voucher", new { id = v.voucher_id })"
+                                class="text-green-600 hover:text-green-800" title="Xem phân phối voucher">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            <form action="@Url.Action("Delete", "Voucher", new { id = v.voucher_id })" method="post"
+                                onsubmit="return confirm('Bạn có chắc chắn muốn xóa voucher này? Voucher đã phát hành: @totalIssued');" class="inline">
+                                <button type="submit" class="text-red-600 hover:text-red-800" title="Xóa">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Thống kê tổng quan -->
+<div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-ticket-alt text-2xl text-blue-500"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Tổng voucher</p>
+                <p class="text-2xl font-semibold text-gray-900 dark:text-white">@Model.Count</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-check-circle text-2xl text-green-500"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Đang hoạt động</p>
+                <p class="text-2xl font-semibold text-gray-900 dark:text-white">@Model.Count(v => v.voucher_is_active)</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-share-alt text-2xl text-purple-500"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Tổng phát hành</p>
+                <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                    @Model.Sum(v => v.customerVouchers?.Sum(cv => cv.customer_voucher_quantity) ?? 0)
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-clock text-2xl text-orange-500"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Sắp hết hạn</p>
+                <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                    @Model.Count(v => v.voucher_end_date <= DateTime.Now.AddDays(7) && v.voucher_end_date > DateTime.Now)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

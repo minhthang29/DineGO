@@ -1,0 +1,297 @@
+@model Core.Models.Client.Custom.CustomProfileViewModel
+@{
+    Layout = "../../Views/Shared/_Profile.cshtml";
+    ViewData["Title"] = "Tracking Delivery";
+}
+
+<div class="col-md-9 d-flex justify-content-center">
+    <div class="profile-container_form">
+        <h3 class="text-center mb-4">Theo dõi giao hàng</h3>       
+        
+        <!-- Status Navigation Tabs -->
+        <nav class="order-status-nav mb-4">
+            <ul class="order-status-tabs nav nav-tabs justify-content-center flex-wrap" id="statusTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-status="all" href="#">Tất cả</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-status="0" href="#">Chờ xác nhận</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-status="1" href="#">Đang chế biến</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-status="2" href="#">Đang giao</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-status="3" href="#">Đã giao</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-status="4" href="#">Đã hủy</a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Orders Container -->
+        <div class="delivery-cards-container">
+            @if (Model.ListOrders != null && Model.ListOrders.Any())
+            {
+                foreach (var order in Model.ListOrders)
+                {
+                    <div class="delivery-card border rounded mb-2 p-3 shadow-sm" data-status="@order.order_status">
+                        <!-- Order Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">
+                                            <i class="bi bi-receipt me-2"></i>Đơn hàng #@order.order_id
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>@order.order_date.ToString("dd/MM/yyyy HH:mm")
+                                        </small>
+                                    </div>
+                                    <div>
+                                        @{
+                                            var statusText = "";
+                                            var statusClass = "";
+                                            switch (order.order_status)
+                                            {
+                                                case 0:
+                                                    statusText = "Chờ xác nhận";
+                                                    statusClass = "badge bg-warning text-dark";
+                                                    break;
+                                                case 1:
+                                                    statusText = "Đang chế biến";
+                                                    statusClass = "badge bg-primary";
+                                                    break;
+                                                case 2:
+                                                    statusText = "Đang giao";
+                                                    statusClass = "badge bg-info";
+                                                    break;
+                                                case 3:
+                                                    statusText = "Đã giao";
+                                                    statusClass = "badge bg-success";
+                                                    break;
+                                                case 4:
+                                                    statusText = "Đã hủy";
+                                                    statusClass = "badge bg-danger";
+                                                    break;
+                                                default:
+                                                    statusText = "Không xác định";
+                                                    statusClass = "badge bg-secondary";
+                                                    break;
+                                            }
+                                        }
+                                        <span class="@statusClass fs-6 px-3 py-2">@statusText</span>
+                                    </div>
+                                    <div class="text-center mx-3">
+                                        <div class="fs-5 fw-bold text-primary">
+                                            <i class="bi bi-cash-coin me-1"></i>@order.order_total.ToString("N0") VND
+                                        </div>
+                                        <small class="text-muted">Tổng thanh toán</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Restaurant Info - Compact -->
+                        <div class="restaurant-info mb-2">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-shop me-2 text-primary"></i>
+                                <strong class="me-auto">@(order.restaurant?.res_name ?? "Nhà hàng")</strong>
+                                
+                            </div>
+                        </div>
+
+                        <!-- Delivery Info - Single row compact -->
+                        <div class="delivery-info-compact mb-2">
+                            <div class="row g-1">
+                                @if (!string.IsNullOrEmpty(order.delivery_address_snapshot))
+                                {
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-house me-1 text-success" style="font-size: 0.8rem;"></i>
+                                            <small class="text-truncate">
+                                                <span class="text-muted">Giao đến:</span> @order.delivery_address_snapshot
+                                            </small>
+                                        </div>
+                                    </div>
+                                }
+                                @if (order.estimated_delivery_time.HasValue)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-clock-history me-1 text-info" style="font-size: 0.8rem;"></i>
+                                            <small>
+                                                <span class="text-muted">Dự kiến:</span> @order.estimated_delivery_time.Value.ToString("HH:mm dd/MM")
+                                            </small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Customer & Financial Info - Single compact row -->
+                        <div class="order-summary-compact">
+                            <div class="row g-1 align-items-center">
+                                <!-- Customer info -->
+                                @if (!string.IsNullOrEmpty(order.customer_name_snapshot))
+                                {
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person me-1 text-secondary" style="font-size: 0.8rem;"></i>
+                                            <small class="text-truncate">
+                                                @order.customer_name_snapshot
+                                                @if (!string.IsNullOrEmpty(order.customer_phone_snapshot))
+                                                {
+                                                    <span class="text-muted"> - @order.customer_phone_snapshot</span>
+                                                }
+                                            </small>
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Financial summary -->
+                                <div class="col-md-5">
+                                    <div class="d-flex justify-content-between text-center">
+                                        <small>
+                                            <span class="text-muted">Phí giao hàng:</span> 
+                                            @if (order.delivery_fee.HasValue && order.delivery_fee > 0)
+                                            {
+                                                @order.delivery_fee.Value.ToString("N0")<text> VND</text>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-info">Miễn phí</span>
+                                            }
+                                        </small>
+                                        @if (!string.IsNullOrEmpty(order.voucher_code_applied))
+                                        {
+                                            <small>
+                                                <span class="text-success">Voucher: @order.voucher_code_applied</span>
+                                            </small>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="col-md-3 text-end">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <a href="@Url.Action("OrderDetails", "Customer", new { orderId = order.order_id })" 
+                                           class="btn btn-outline-primary btn-sm px-2 py-1">
+                                            <i class="bi bi-eye"></i> Chi tiết
+                                        </a>
+                                        @if (order.order_status == 3) // Đã giao
+                                        {
+                                            <button class="btn btn-outline-success btn-sm px-2 py-1">
+                                                <i class="bi bi-star"></i> Đánh giá
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-orders text-center py-5">
+                    <div class="no-orders-icon mb-3">
+                        <i class="bi bi-cart-x fs-1 text-muted"></i>
+                    </div>
+                    <h5 class="text-muted">Chưa có đơn hàng nào</h5>
+                    <p class="text-muted">Bạn chưa có đơn hàng nào để theo dõi</p>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                        <i class="bi bi-shop me-2"></i>Đặt hàng ngay
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/client/js/tracking-delivery.js"></script>
+}
+
+<style>
+.delivery-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.delivery-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.order-status-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.order-status-tabs .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    border-radius: 25px;
+}
+
+.order-status-tabs .nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+    color: #007bff;
+}
+
+.no-orders {
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    margin: 2rem 0;
+}
+
+/* Ultra compact improvements */
+.delivery-card {
+    padding: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.delivery-info-compact .row {
+    margin: 0 -0.125rem;
+}
+
+.delivery-info-compact .col-md-6 {
+    padding: 0 0.125rem;
+}
+
+.order-summary-compact .row {
+    margin: 0 -0.125rem;
+}
+
+.order-summary-compact .col-md-4,
+.order-summary-compact .col-md-5,
+.order-summary-compact .col-md-3 {
+    padding: 0 0.125rem;
+}
+
+.text-truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.btn-sm {
+    font-size: 0.75rem;
+}
+
+/* Responsive adjustments */
+@@media (max-width: 768px) {
+    .delivery-info-compact .col-md-6,
+    .order-summary-compact .col-md-4,
+    .order-summary-compact .col-md-5,
+    .order-summary-compact .col-md-3 {
+        margin-bottom: 0.25rem;
+    }
+}
+</style>

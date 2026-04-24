@@ -1,0 +1,48 @@
+/* Common notification - Thang*/
+.notification-box {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    width: fit-content;
+    padding: 1rem 1rem;
+    text-align: center;
+    background-color: #DCFCE7;
+    color: #15803D;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    opacity: 1;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.notification-box.hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-color: #28fd3dcc;
+    animation: progressBar 3s linear forwards;
+    border-radius: 0 0 8px 8px;
+}
+
+.notification-box.success {
+    background-color: #DCFCE7;
+    color: #15803D;
+}
+
+.notification-box.error {
+    background-color: #FEE2E2;
+    color: #B91C1C;
+}
+
+@keyframes progressBar {
+    from { width: 0%; }
+    to { width: 100%; }
+}

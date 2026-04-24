@@ -1,0 +1,86 @@
+@model Core.Models.Customer
+@{
+    Layout = "../../Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Cập nhật khách hàng";
+}
+
+<div class="max-w-xl mx-auto mt-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
+    <h2 class="text-2xl font-bold mb-6 text-indigo-700">@ViewData["Title"]</h2>
+
+    <form asp-action="UpdateCustomer" method="post" enctype="multipart/form-data" class="space-y-6">
+        <input type="text" id="cus_id" name="cus_id" value="@Model.cus_id" hidden />
+        <input type="text" id="cus_username" name="cus_username" value="@Model.cus_username" hidden />
+        <input type="password" id="cus_password" name="cus_password" value="@Model.cus_password" hidden />
+        <input type="password" id="cus_image" name="cus_image" value="@Model.cus_image" hidden />
+        <div class="flex flex-col items-center mb-4">
+            <img id="avatar-preview"
+                 src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/customers/thumb_@Model.cus_image"
+                 alt="Avatar"
+                 class="w-24 h-24 rounded-full object-cover border-2 border-indigo-400 mb-2" />
+            <input type="file" id="cus_image" name="cus_image" accept="image/*"
+                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+        </div>
+        <div>
+            <label for="cus_name" class="block mb-1 font-medium text-gray-700 dark:text-gray-200">Họ và tên</label>
+            <input type="text" id="cus_name" name="cus_name" value="@Model.cus_name" class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900" />
+        </div>
+
+        <div>
+            <label for="cus_birthday" class="block mb-1 font-medium text-gray-700 dark:text-gray-200">Birthday</label>
+            <input type="date" id="cus_birthday" name="cus_birthday" value="@(Model.cus_birthday?.ToString("yyyy-MM-dd"))" class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900" />
+        </div>
+
+        <div>
+            <label for="cus_gender" class="block mb-1 font-medium text-gray-700 dark:text-gray-200">Gender</label>
+            <select id="cus_gender" name="cus_gender" class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900">
+                <option value="">Chọn giới tính</option>
+                <option value="true" @(Model.cus_gender == true ? "selected" : "")>Nam</option>
+                <option value="false" @(Model.cus_gender == false ? "selected" : "")>Nữ</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="cus_phone" class="block mb-1 font-medium text-gray-700 dark:text-gray-200">Phone</label>
+            <input type="tel" id="cus_phone" name="cus_phone" value="@Model.cus_phone" class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900" required/>
+        </div>
+
+        <div>
+            <label for="cus_email" class="block mb-1 font-medium text-gray-700 dark:text-gray-200">Email</label>
+            <input type="email" id="cus_email" name="cus_email" value="@Model.cus_email" readonly class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900 cursor-not-allowed" />
+        </div>
+
+        <div>
+            <label for="cus_address" class="block mb-1 font-medium text-gray-700 dark:text-gray-200">Address</label>
+            <textarea id="cus_address" name="cus_address" rows="3" class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900">@Model.cus_address</textarea>
+        </div>
+
+        <div class="flex justify-between mt-6">
+            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-semibold transition">
+                Update Customer
+            </button>
+            <a href="javascript:history.back()" class="px-6 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 font-semibold transition">
+                Back
+            </a>
+        </div>
+    </form>
+</div>
+<!-- Popup đổi mật khẩu -->
+<div id="changePasswordModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <h3 class="text-lg font-bold mb-4">Đổi mật khẩu</h3>
+        <div class="mb-3">
+            <label class="block mb-1">Mật khẩu mới</label>
+            <input type="password" id="new_password" class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900" />
+        </div>
+        <div class="mb-3">
+            <label class="block mb-1">Xác nhận mật khẩu</label>
+            <input type="password" id="confirm_new_password" class="w-full px-4 py-2 border rounded bg-gray-100 text-gray-900" />
+            <span id="pw-match-msg" class="text-red-500 text-sm"></span>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button type="button" id="cancelChangePw" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Hủy</button>
+            <button type="button" id="saveChangePw" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Lưu</button>
+        </div>
+    </div>
+</div>
+<script src="/js/customer.js"></script>

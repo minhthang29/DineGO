@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Báo cáo";
+}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-12">
+            <div class="card shadow-sm p-4">
+                <h2 class="fw-bold mb-3 text-danger">Báo cáo sự cố / góp ý</h2>
+                <p class="mb-4">Vui lòng mô tả vấn đề bạn gặp phải hoặc góp ý cho hệ thống:</p>
+                <form asp-action="Create" asp-controller="Report" method="post">
+                    <div class="mb-3">
+                        <label for="report_type" class="form-label">Loại báo cáo</label>
+                        <select class="form-select" id="report_type" name="report_type" required>
+                            <option value="">-- Chọn loại báo cáo --</option>
+                            <option value="bug">Báo lỗi hệ thống</option>
+                            <option value="feedback">Góp ý</option>
+                            <option value="user">Báo cáo người dùng</option>
+                            <option value="other">Khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report_content" class="form-label">Nội dung báo cáo</label>
+                        <textarea class="form-control" id="report_content" name="report_content" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report_related_url" class="form-label">Liên kết liên quan (nếu có)</label>
+                        <input type="text" class="form-control" id="report_related_url" name="report_related_url" maxlength="255" />
+                    </div>
+                    <button type="submit" class="btn btn-danger px-4">Gửi báo cáo</button>
+                </form>
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger mt-3">@TempData["ErrorMessage"]</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

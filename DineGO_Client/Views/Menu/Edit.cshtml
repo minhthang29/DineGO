@@ -1,0 +1,54 @@
+@model Core.Models.Client.Custom.MenuWithRestaurantViewModel
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_RestaurantPanel.cshtml";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 500px;">
+    <div class="card shadow-lg p-4 rounded-4" style="width: 100%; max-width: 600px; background-color: #fff;">
+        <h3 class="text-center fw-bold text-danger mb-4">✏️ Sửa Menu - @Model.Restaurant.res_name</h3>
+
+        <form id="editMenuForm" asp-action="Edit" asp-route-id="@Model.Menu?.menu_id" method="post"
+            enctype="multipart/form-data">
+            <input type="hidden" asp-for="Menu.menu_id" />
+            <input type="hidden" asp-for="Menu.res_id" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Tên menu <span class="text-danger">*</span></label>
+                <input type="text" name="Menu.menu_name" id="menuName" value="@Model.Menu?.menu_name"
+                    class="form-control rounded-3 border-danger" placeholder="Nhập tên menu" />
+                <span class="text-danger" id="menuNameError"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Loại menu <span class="text-danger">*</span></label>
+                <input type="text" name="Menu.menu_type" id="menuType" value="@Model.Menu?.menu_type"
+                    class="form-control rounded-3 border-danger" placeholder="Lunch, Dinner..." />
+                <span class="text-danger" id="menuTypeError"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Ảnh hiện tại</label>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var img in Model.Menu.menu_images ?? new List<string>())
+                    {
+                        <img src="https://dinego-bucket-aws.s3.ap-south-1.amazonaws.com/menus/thumb_@img"
+                            class="img-thumbnail" style="height:100px;" />
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-danger">Ảnh mới</label>
+                <input type="file" name="imageFiles" id="imageFile" multiple
+                    class="form-control rounded-3 border-danger" />
+                <span class="text-danger" id="imageFileError">Bạn có thể chọn ảnh mới để thay đổi.</span>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="ListMenu" asp-route-res_id="@Model.Restaurant.res_id"
+                    class="btn btn-outline-secondary rounded-3 px-4">Quay lại</a>
+                <button type="submit" class="btn btn-danger rounded-3 px-4">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="/client/js/menu.js" asp-append-version="true"></script>
